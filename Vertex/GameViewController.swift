@@ -16,7 +16,43 @@ class GameViewController: UIViewController {
         super.viewDidLoad()
         
         // create a new scene
-        let scene = SCNScene(named: "art.scnassets/ship.dae")!
+        let scene = SCNScene()
+        
+        var positions = [
+            SCNVector3Make(-3,-1, 0),
+            SCNVector3Make( 2,-1, 0),
+            SCNVector3Make( 1, 3, 0),
+            SCNVector3Make(-3, 0, 0)
+        ]
+        
+        var indices:[CInt] = [
+            // bottom
+            0, 1, 2,
+            0, 2, 3
+        ]
+        
+        var indexData = NSData(bytes:&indices, length:sizeof(CInt) * indices.count)
+        
+        var corners:[CInt] = [0, 1, 2, 3]
+        
+        var cornerData = NSData(bytes:&corners, length:sizeof(CInt) * corners.count)
+        
+        var element = SCNGeometryElement(data: indexData, primitiveType: SCNGeometryPrimitiveType.Triangles, primitiveCount: 2, bytesPerIndex: sizeof(CInt))
+        
+        var vertexSource = SCNGeometrySource(vertices: positions, count: 4)
+        
+        var square = SCNGeometry(sources: [vertexSource], elements: [element])
+        
+        let squareNode = SCNNode(geometry: square)
+
+        for p in positions {
+            var sphere = SCNSphere(radius: 0.125)
+            var cornerNode = SCNNode(geometry: sphere)
+            cornerNode.position = p
+            squareNode.addChildNode(cornerNode)
+        }
+        
+        scene.rootNode.addChildNode(squareNode)
         
         // create and add a camera to the scene
         let cameraNode = SCNNode()
@@ -40,26 +76,17 @@ class GameViewController: UIViewController {
         ambientLightNode.light!.color = UIColor.darkGrayColor()
         scene.rootNode.addChildNode(ambientLightNode)
         
-        // retrieve the ship node
-        let ship = scene.rootNode.childNodeWithName("ship", recursively: true)!
-        
-        // animate the 3d object
-        ship.runAction(SCNAction.repeatActionForever(SCNAction.rotateByX(0, y: 2, z: 0, duration: 1)))
-        
         // retrieve the SCNView
         let scnView = self.view as! SCNView
         
         // set the scene to the view
         scnView.scene = scene
         
-        // allows the user to manipulate the camera
-        scnView.allowsCameraControl = true
-        
-        // show statistics such as fps and timing information
-        scnView.showsStatistics = true
+//        scnView.allowsCameraControl = true
+//        scnView.showsStatistics = true
         
         // configure the view
-        scnView.backgroundColor = UIColor.blackColor()
+        scnView.backgroundColor = UIColor.lightGrayColor()
         
         // add a tap gesture recognizer
         let tapGesture = UITapGestureRecognizer(target: self, action: "handleTap:")
