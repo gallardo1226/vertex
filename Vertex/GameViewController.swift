@@ -10,14 +10,7 @@ import UIKit
 import QuartzCore
 import SceneKit
 
-class GameViewController: UIViewController {
-    // Geometry
-    var geometryNode: SCNNode = SCNNode()
-    
-    // Gestures
-    var currentAngle: Float = 0.0
-
-    
+class GameViewController: UIViewController, SCNSceneRendererDelegate {
     var fillLevel = 0.0
     let maxFill = 100.0
     let cyclesBetweenNextFill = 1000
@@ -81,7 +74,6 @@ class GameViewController: UIViewController {
             gestureRecognizers.extend(existingGestureRecognizers)
         }
         scnView.gestureRecognizers = gestureRecognizers
-        
     }
     
     func renderer(aRenderer: SCNSceneRenderer, updateAtTime time: NSTimeInterval) {
@@ -96,7 +88,6 @@ class GameViewController: UIViewController {
                 score += Int(sizeOfHole)
             }
         }
-            
         // Increment the cycle count
         cycleCount++
             
@@ -109,90 +100,8 @@ class GameViewController: UIViewController {
         if (fillLevel >= maxFill) {
             // Game Over
         }
-        
-        
     }
-    
-    func generateShape(numVertices: Int) -> Double {
-        
-        /*
-        let screenSize = self.view.frame.size
-        
-        let maxX = Float(screenSize.width)
-        let minX = Float(0)
-        let maxY = Float(screenSize.height)
-        let minY = Float(0)
-        */
-        
-        let maxX = Float(3)
-        let minX = Float(-3)
-        let maxY = Float(5)
-        let minY = Float(-5)
-        
-        var xs = [Int]()
-        var ys = [Int]()
-        
-        for ii in 0...(numVertices-1) {
-            xs.append(Int(((Float(arc4random()) / Float(UINT32_MAX)) * (maxX-minX)) - maxX))
-            ys.append(Int(((Float(arc4random()) / Float(UINT32_MAX)) * (maxY-minY)) - maxY))
-        }
-        
-        if (firstHole) {
-            (self.view as! SCNView).scene?.rootNode.addChildNode(holeNode)
-            firstHole = false
-        }
-        
-        var positions = [SCNVector3]()
-        
-        for jj in 0...(numVertices-1) {
-            positions.append(SCNVector3Make(Float(xs[jj]), Float(ys[jj]), 0.0))
-        }
-        
-        var indices:[CInt] = [
-            // bottom
-            0, 1, 2,
-            0, 2, 3
-        ]
-        
-        var indexData = NSData(bytes:&indices, length:sizeof(CInt) * indices.count)
-        
-        var element = SCNGeometryElement(data: indexData, primitiveType: SCNGeometryPrimitiveType.Triangles, primitiveCount: 2, bytesPerIndex: sizeof(CInt))
-        
-        var vertexSource = SCNGeometrySource(vertices: positions, count: 4)
-        
-        var hole = SCNGeometry(sources: [vertexSource], elements: [element])
-        
-        var tempNode = SCNNode(geometry: hole)
-        
-        (self.view as! SCNView).scene?.rootNode.replaceChildNode(holeNode, with: tempNode)
-        
-        holeNode = tempNode
-        
-        return calcArea(holeNode, xVals: xs, yVals: ys)
-    }
-    
-    func calcArea(node: SCNNode, xVals: [Int], yVals: [Int]) -> Double {
-        var product = 1
 
-        for ii in 0...(numVertices-2) {
-            product *= (xVals[ii]*yVals[ii+1] - yVals[ii]*xVals[ii+1])
-        }
-        
-        product *= (xVals[numVertices-1]*yVals[0] - yVals[numVertices-1]*xVals[0])
-        
-        return 0.5 * Double(product)
-        
-    }
-    
-    
-    func fillSpace(size: Double) -> Double {
-        return size/10
-    }
-    
-    func isHoleCovered() -> Bool {
-        return false
-    }
-    
     func addPlayerTriangle(scene: SCNScene) {
         let positions = [
             SCNVector3Make(-1,-sqrt(3) / 2, 0),
@@ -255,14 +164,81 @@ class GameViewController: UIViewController {
         square.firstMaterial!.diffuse.contents = UIColor.purpleColor()
         let squareNode = SCNNode(geometry: square)
         
-        for p in positions {
-            let sphere = SCNSphere(radius: 0.125)
-            let cornerNode = SCNNode(geometry: sphere)
-            cornerNode.position = p
-            squareNode.addChildNode(cornerNode)
+        scene.rootNode.addChildNode(squareNode)
+    }
+
+    func generateShape(numVertices: Int) -> Double {
+        
+        /*
+        let screenSize = self.view.frame.size
+        
+        let maxX = Float(screenSize.width)
+        let minX = Float(0)
+        let maxY = Float(screenSize.height)
+        let minY = Float(0)
+        */
+        
+        let maxX = Float(3)
+        let minX = Float(-3)
+        let maxY = Float(5)
+        let minY = Float(-5)
+        
+        var xs = [Int]()
+        var ys = [Int]()
+        
+        for ii in 0...(numVertices-1) {
+            xs.append(Int(((Float(arc4random()) / Float(UINT32_MAX)) * (maxX-minX)) - maxX))
+            ys.append(Int(((Float(arc4random()) / Float(UINT32_MAX)) * (maxY-minY)) - maxY))
         }
         
-        scene.rootNode.addChildNode(squareNode)
+        if (firstHole) {
+            (self.view as! SCNView).scene?.rootNode.addChildNode(holeNode)
+            firstHole = false
+        }
+        
+        var positions = [SCNVector3]()
+        
+        for jj in 0...(numVertices-1) {
+            positions.append(SCNVector3Make(Float(xs[jj]), Float(ys[jj]), 0.0))
+        }
+        
+        var indexData = NSData(bytes:&indices, length:sizeof(CInt) * indices.count)
+        
+        var element = SCNGeometryElement(data: indexData, primitiveType: SCNGeometryPrimitiveType.Triangles, primitiveCount: 2, bytesPerIndex: sizeof(CInt))
+        
+        var vertexSource = SCNGeometrySource(vertices: positions, count: 4)
+        
+        var hole = SCNGeometry(sources: [vertexSource], elements: [element])
+        
+        var tempNode = SCNNode(geometry: hole)
+        
+        (self.view as! SCNView).scene?.rootNode.replaceChildNode(holeNode, with: tempNode)
+        
+        holeNode = tempNode
+        
+        return calcArea(holeNode, xVals: xs, yVals: ys)
+    }
+    
+    func calcArea(node: SCNNode, xVals: [Int], yVals: [Int]) -> Double {
+        var product = 1
+
+        for ii in 0...(numVertices-2) {
+            product *= (xVals[ii]*yVals[ii+1] - yVals[ii]*xVals[ii+1])
+        }
+
+        product *= (xVals[numVertices-1]*yVals[0] - yVals[numVertices-1]*xVals[0])
+        
+        return 0.5 * Double(product)
+        
+    }
+    
+    
+    func fillSpace(size: Double) -> Double {
+        return size/10
+    }
+    
+    func isHoleCovered() -> Bool {
+        return false
     }
     
     func handleTap(gestureRecognize: UIGestureRecognizer) {
@@ -283,17 +259,6 @@ class GameViewController: UIViewController {
         }
     }
     
-    func panGesture(sender: UIPanGestureRecognizer) {
-        let translation = sender.translationInView(sender.view!)
-        var newAngle = (Float)(translation.x)*(Float)(M_PI)/180.0
-        newAngle += currentAngle
-        
-        geometryNode.transform = SCNMatrix4MakeRotation(newAngle, 0, 1, 0)
-        
-        if(sender.state == UIGestureRecognizerState.Ended) {
-            currentAngle = newAngle
-        }
-    }
     
     override func shouldAutorotate() -> Bool {
         return true
