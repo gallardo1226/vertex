@@ -134,7 +134,8 @@ class GameViewController: UIViewController {
             squareNode.addChildNode(cornerNode)
         }
         
-        scene.rootNode.addChildNode(squareNode)    }
+        scene.rootNode.addChildNode(squareNode)
+    }
     
     func handleTap(gestureRecognize: UIGestureRecognizer) {
         // retrieve the SCNView
