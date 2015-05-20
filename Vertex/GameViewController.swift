@@ -13,7 +13,7 @@ import SceneKit
 class GameViewController: UIViewController, SCNSceneRendererDelegate {
     var fillLevel = 0.0
     let maxFill = 100.0
-    let cyclesBetweenNextFill = 1000
+    let cyclesBetweenNextFill = 1
     let maxArea = 100.0
     var cycleCount = 0
     var sizeOfHole = 0.0
@@ -24,6 +24,11 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
     var numVertices = 3
     var holeNode = SCNNode()
     var firstHole = true
+    var holePositions = [SCNVector3]()
+    
+    var fillNode = SCNNode()
+    var fillPositions = [SCNVector3]()
+    var firstFill = true
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -94,8 +99,11 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         // If needed, reset cycle count and fill space
         if (cycleCount == cyclesBetweenNextFill) {
             cycleCount = 0
-            fillLevel = fillLevel + fillSpace(sizeOfHole)
+            fillLevel += fillSpace(sizeOfHole)
+            println(fillLevel)
         }
+        
+        drawFillLine(fillLevel)
         
         if (fillLevel >= maxFill) {
             // Game Over
@@ -179,62 +187,82 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         */
         
         let maxX = Float(3)
-        let minX = Float(-3)
+        let minX = Float(0)
         let maxY = Float(5)
-        let minY = Float(-5)
+        let minY = Float(0)
         
-        var xs = [Int]()
-        var ys = [Int]()
+        var xs = [Float]()
+        var ys = [Float]()
         
         for ii in 0...(numVertices-1) {
-            xs.append(Int(((Float(arc4random()) / Float(UINT32_MAX)) * (maxX-minX)) - maxX))
-            ys.append(Int(((Float(arc4random()) / Float(UINT32_MAX)) * (maxY-minY)) - maxY))
+            xs.append(Float(((Float(arc4random()) / Float(UINT32_MAX)) * maxX)))
+            ys.append(Float(((Float(arc4random()) / Float(UINT32_MAX)) * maxY)))
         }
+        
         
         if (firstHole) {
             (self.view as! SCNView).scene?.rootNode.addChildNode(holeNode)
             firstHole = false
         }
+
         
-        var positions = [SCNVector3]()
+        //(self.view as! SCNView).scene?.rootNode.addChildNode(holeNode)
+        
+        holePositions = [SCNVector3]()
         
         for jj in 0...(numVertices-1) {
-            positions.append(SCNVector3Make(Float(xs[jj]), Float(ys[jj]), 0.0))
+            holePositions.append(SCNVector3Make(Float(xs[jj]), Float(ys[jj]), 0.0))
         }
         
+        var indices:[CInt] = [
+            0, 1, 2,
+        ]
         var indexData = NSData(bytes:&indices, length:sizeof(CInt) * indices.count)
-        
         var element = SCNGeometryElement(data: indexData, primitiveType: SCNGeometryPrimitiveType.Triangles, primitiveCount: 2, bytesPerIndex: sizeof(CInt))
-        
-        var vertexSource = SCNGeometrySource(vertices: positions, count: 4)
+        var vertexSource = SCNGeometrySource(vertices: holePositions, count: numVertices)
         
         var hole = SCNGeometry(sources: [vertexSource], elements: [element])
-        
+        hole.firstMaterial!.diffuse.contents = UIColor.blueColor()
+        //holeNode = SCNNode(geometry: hole)
         var tempNode = SCNNode(geometry: hole)
-        
         (self.view as! SCNView).scene?.rootNode.replaceChildNode(holeNode, with: tempNode)
-        
         holeNode = tempNode
         
         return calcArea(holeNode, xVals: xs, yVals: ys)
     }
     
-    func calcArea(node: SCNNode, xVals: [Int], yVals: [Int]) -> Double {
-        var product = 1
+    func calcArea(node: SCNNode, xVals: [Float], yVals: [Float]) -> Double {
+        var sum = 0.0
 
         for ii in 0...(numVertices-2) {
-            product *= (xVals[ii]*yVals[ii+1] - yVals[ii]*xVals[ii+1])
+            sum += Double(xVals[ii]*yVals[ii+1] - yVals[ii]*xVals[ii+1])
         }
 
-        product *= (xVals[numVertices-1]*yVals[0] - yVals[numVertices-1]*xVals[0])
+        sum += Double(xVals[numVertices-1]*yVals[0] - yVals[numVertices-1]*xVals[0])
         
-        return 0.5 * Double(product)
+        return 0.5 * Double(abs(sum))
         
+    }
+    
+    func drawFillLine(newFill: Double) {
+        
+        if (firstFill) {
+            (self.view as! SCNView).scene?.rootNode.addChildNode(fillNode)
+            firstFill = false
+        }
+        
+        var fillPlane = SCNPlane(width: 50, height: 0.1)
+        fillPlane.firstMaterial!.diffuse.contents = UIColor.cyanColor()
+        var tempNode = SCNNode(geometry: fillPlane)
+        tempNode.position = SCNVector3(x: Float(-10), y: Float(newFill-10), z: Float(0))
+        (self.view as! SCNView).scene?.rootNode.replaceChildNode(fillNode, with: tempNode)
+        fillNode = tempNode
+
     }
     
     
     func fillSpace(size: Double) -> Double {
-        return size/10
+        return size/100
     }
     
     func isHoleCovered() -> Bool {
