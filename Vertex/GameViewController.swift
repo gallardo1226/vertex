@@ -11,6 +11,11 @@ import QuartzCore
 import SceneKit
 
 class GameViewController: UIViewController {
+    // Geometry
+    var geometryNode: SCNNode = SCNNode()
+    
+    // Gestures
+    var currentAngle: Float = 0.0
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -18,41 +23,8 @@ class GameViewController: UIViewController {
         // create a new scene
         let scene = SCNScene()
         
-        var positions = [
-            SCNVector3Make(-3,-1, 0),
-            SCNVector3Make( 2,-1, 0),
-            SCNVector3Make( 1, 3, 0),
-            SCNVector3Make(-3, 0, 0)
-        ]
-        
-        var indices:[CInt] = [
-            // bottom
-            0, 1, 2,
-            0, 2, 3
-        ]
-        
-        var indexData = NSData(bytes:&indices, length:sizeof(CInt) * indices.count)
-        
-        var corners:[CInt] = [0, 1, 2, 3]
-        
-        var cornerData = NSData(bytes:&corners, length:sizeof(CInt) * corners.count)
-        
-        var element = SCNGeometryElement(data: indexData, primitiveType: SCNGeometryPrimitiveType.Triangles, primitiveCount: 2, bytesPerIndex: sizeof(CInt))
-        
-        var vertexSource = SCNGeometrySource(vertices: positions, count: 4)
-        
-        var square = SCNGeometry(sources: [vertexSource], elements: [element])
-        
-        let squareNode = SCNNode(geometry: square)
-
-        for p in positions {
-            var sphere = SCNSphere(radius: 0.125)
-            var cornerNode = SCNNode(geometry: sphere)
-            cornerNode.position = p
-            squareNode.addChildNode(cornerNode)
-        }
-        
-        scene.rootNode.addChildNode(squareNode)
+//        addPlayerSquare(scene)
+        addPlayerTriangle(scene)
         
         // create and add a camera to the scene
         let cameraNode = SCNNode()
@@ -63,17 +35,12 @@ class GameViewController: UIViewController {
         cameraNode.position = SCNVector3(x: 0, y: 0, z: 15)
         
         // create and add a light to the scene
-        let lightNode = SCNNode()
-        lightNode.light = SCNLight()
-        lightNode.light!.type = SCNLightTypeOmni
-        lightNode.position = SCNVector3(x: 0, y: 10, z: 10)
-        scene.rootNode.addChildNode(lightNode)
         
         // create and add an ambient light to the scene
         let ambientLightNode = SCNNode()
         ambientLightNode.light = SCNLight()
         ambientLightNode.light!.type = SCNLightTypeAmbient
-        ambientLightNode.light!.color = UIColor.darkGrayColor()
+        ambientLightNode.light!.color = UIColor.whiteColor()
         scene.rootNode.addChildNode(ambientLightNode)
         
         // retrieve the SCNView
@@ -98,10 +65,80 @@ class GameViewController: UIViewController {
         scnView.gestureRecognizers = gestureRecognizers
     }
     
+    func addPlayerTriangle(scene: SCNScene) {
+        let positions = [
+            SCNVector3Make(-1,-sqrt(3) / 2, 0),
+            SCNVector3Make( 1,-sqrt(3) / 2, 0),
+            SCNVector3Make( 0, sqrt(3) / 2, 0)
+        ]
+        let normals = [
+            SCNVector3Make( -0.5, 0, 0),
+            SCNVector3Make( 0.5, 0, 0),
+            SCNVector3Make(-sqrt(3) / 2, 0, 0)
+        ]
+        var indices:[CInt] = [
+            0, 1, 2
+        ]
+        let indexData = NSData(bytes:&indices, length:sizeof(CInt) * indices.count)
+        var corners:[CInt] = [0, 1, 2]
+        let cornerData = NSData(bytes:&corners, length:sizeof(CInt) * corners.count)
+        let element = SCNGeometryElement(data: indexData, primitiveType: SCNGeometryPrimitiveType.Triangles, primitiveCount: 1, bytesPerIndex: sizeof(CInt))
+        let vertexSource = SCNGeometrySource(vertices: positions, count: 3)
+        let normalSource = SCNGeometrySource(normals:normals,
+                count: 3)
+        let triangle = SCNGeometry(sources: [vertexSource], elements: [element])
+        triangle.firstMaterial!.diffuse.contents = UIColor.greenColor()
+        let triangleNode = SCNNode(geometry: triangle)
+        for p in positions {
+            var sphere = SCNSphere(radius: 0.125)
+            var cornerNode = SCNNode(geometry: sphere)
+            cornerNode.position = p
+            cornerNode.name = "Corner"
+            triangleNode.addChildNode(cornerNode)
+        }
+        scene.rootNode.addChildNode(triangleNode)
+    }
+    
+    func addPlayerSquare(scene: SCNScene) {
+        let positions = [
+            SCNVector3Make(-1,-1, 0),
+            SCNVector3Make( 1,-1, 0),
+            SCNVector3Make( 1, 1, 0),
+            SCNVector3Make(-1, 1, 0)
+        ]
+        let normals = [
+            SCNVector3Make( 0, -1, 0),
+            SCNVector3Make( 0, 1, 0),
+            SCNVector3Make(-1, 0, 0),
+            SCNVector3Make( 1, 0, 0)
+        ]
+        var indices:[CInt] = [
+            0, 1, 2,
+            0, 2, 3
+        ]
+        let indexData = NSData(bytes:&indices, length:sizeof(CInt) * indices.count)
+        var corners:[CInt] = [0, 1, 2, 3]
+        let cornerData = NSData(bytes:&corners, length:sizeof(CInt) * corners.count)
+        let element = SCNGeometryElement(data: indexData, primitiveType: SCNGeometryPrimitiveType.Triangles, primitiveCount: 2, bytesPerIndex: sizeof(CInt))
+        let vertexSource = SCNGeometrySource(vertices: positions, count: 4)
+        let normalSource = SCNGeometrySource(normals: normals,
+            count: 4)
+        let square = SCNGeometry(sources: [vertexSource], elements: [element])
+        square.firstMaterial!.diffuse.contents = UIColor.purpleColor()
+        let squareNode = SCNNode(geometry: square)
+        
+        for p in positions {
+            let sphere = SCNSphere(radius: 0.125)
+            let cornerNode = SCNNode(geometry: sphere)
+            cornerNode.position = p
+            squareNode.addChildNode(cornerNode)
+        }
+        
+        scene.rootNode.addChildNode(squareNode)    }
+    
     func handleTap(gestureRecognize: UIGestureRecognizer) {
         // retrieve the SCNView
         let scnView = self.view as! SCNView
-        
         // check what nodes are tapped
         let p = gestureRecognize.locationInView(scnView)
         if let hitResults = scnView.hitTest(p, options: nil) {
@@ -110,27 +147,22 @@ class GameViewController: UIViewController {
                 // retrieved the first clicked object
                 let result: AnyObject! = hitResults[0]
                 
-                // get its material
-                let material = result.node!.geometry!.firstMaterial!
-                
-                // highlight it
-                SCNTransaction.begin()
-                SCNTransaction.setAnimationDuration(0.5)
-                
-                // on completion - unhighlight
-                SCNTransaction.setCompletionBlock {
-                    SCNTransaction.begin()
-                    SCNTransaction.setAnimationDuration(0.5)
-                    
-                    material.emission.contents = UIColor.blackColor()
-                    
-                    SCNTransaction.commit()
+                if result.node.name == "Corner" {
+                    println("Found corner")
                 }
-                
-                material.emission.contents = UIColor.redColor()
-                
-                SCNTransaction.commit()
             }
+        }
+    }
+    
+    func panGesture(sender: UIPanGestureRecognizer) {
+        let translation = sender.translationInView(sender.view!)
+        var newAngle = (Float)(translation.x)*(Float)(M_PI)/180.0
+        newAngle += currentAngle
+        
+        geometryNode.transform = SCNMatrix4MakeRotation(newAngle, 0, 1, 0)
+        
+        if(sender.state == UIGestureRecognizerState.Ended) {
+            currentAngle = newAngle
         }
     }
     
