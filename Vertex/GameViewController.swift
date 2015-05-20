@@ -17,8 +17,26 @@ class GameViewController: UIViewController {
     // Gestures
     var currentAngle: Float = 0.0
 
+    
+    var fillLevel = 0.0
+    let maxFill = 100.0
+    let cyclesBetweenNextFill = 1000
+    let maxArea = 100.0
+    var cycleCount = 0
+    var sizeOfHole = 0.0
+    var shapeUncovered = false
+    var x: Float = 0.0
+    var score = 0
+    
+    var numVertices = 3
+    var holeNode = SCNNode()
+    var firstHole = true
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        (self.view as! SCNView).delegate = self
+        (self.view as! SCNView).playing = true
         
         // create a new scene
         let scene = SCNScene()
@@ -63,6 +81,116 @@ class GameViewController: UIViewController {
             gestureRecognizers.extend(existingGestureRecognizers)
         }
         scnView.gestureRecognizers = gestureRecognizers
+        
+    }
+    
+    func renderer(aRenderer: SCNSceneRenderer, updateAtTime time: NSTimeInterval) {
+        
+        // If hole has been covered, generate new hole
+        if (!shapeUncovered) {
+            sizeOfHole = generateShape(numVertices)
+            shapeUncovered = true
+        } else {
+            if (isHoleCovered()) {
+                shapeUncovered = false
+                score += Int(sizeOfHole)
+            }
+        }
+            
+        // Increment the cycle count
+        cycleCount++
+            
+        // If needed, reset cycle count and fill space
+        if (cycleCount == cyclesBetweenNextFill) {
+            cycleCount = 0
+            fillLevel = fillLevel + fillSpace(sizeOfHole)
+        }
+        
+        if (fillLevel >= maxFill) {
+            // Game Over
+        }
+        
+        
+    }
+    
+    func generateShape(numVertices: Int) -> Double {
+        
+        /*
+        let screenSize = self.view.frame.size
+        
+        let maxX = Float(screenSize.width)
+        let minX = Float(0)
+        let maxY = Float(screenSize.height)
+        let minY = Float(0)
+        */
+        
+        let maxX = Float(3)
+        let minX = Float(-3)
+        let maxY = Float(5)
+        let minY = Float(-5)
+        
+        var xs = [Int]()
+        var ys = [Int]()
+        
+        for ii in 0...(numVertices-1) {
+            xs.append(Int(((Float(arc4random()) / Float(UINT32_MAX)) * (maxX-minX)) - maxX))
+            ys.append(Int(((Float(arc4random()) / Float(UINT32_MAX)) * (maxY-minY)) - maxY))
+        }
+        
+        if (firstHole) {
+            (self.view as! SCNView).scene?.rootNode.addChildNode(holeNode)
+            firstHole = false
+        }
+        
+        var positions = [SCNVector3]()
+        
+        for jj in 0...(numVertices-1) {
+            positions.append(SCNVector3Make(Float(xs[jj]), Float(ys[jj]), 0.0))
+        }
+        
+        var indices:[CInt] = [
+            // bottom
+            0, 1, 2,
+            0, 2, 3
+        ]
+        
+        var indexData = NSData(bytes:&indices, length:sizeof(CInt) * indices.count)
+        
+        var element = SCNGeometryElement(data: indexData, primitiveType: SCNGeometryPrimitiveType.Triangles, primitiveCount: 2, bytesPerIndex: sizeof(CInt))
+        
+        var vertexSource = SCNGeometrySource(vertices: positions, count: 4)
+        
+        var hole = SCNGeometry(sources: [vertexSource], elements: [element])
+        
+        var tempNode = SCNNode(geometry: hole)
+        
+        (self.view as! SCNView).scene?.rootNode.replaceChildNode(holeNode, with: tempNode)
+        
+        holeNode = tempNode
+        
+        return calcArea(holeNode, xVals: xs, yVals: ys)
+    }
+    
+    func calcArea(node: SCNNode, xVals: [Int], yVals: [Int]) -> Double {
+        var product = 1
+
+        for ii in 0...(numVertices-2) {
+            product *= (xVals[ii]*yVals[ii+1] - yVals[ii]*xVals[ii+1])
+        }
+        
+        product *= (xVals[numVertices-1]*yVals[0] - yVals[numVertices-1]*xVals[0])
+        
+        return 0.5 * Double(product)
+        
+    }
+    
+    
+    func fillSpace(size: Double) -> Double {
+        return size/10
+    }
+    
+    func isHoleCovered() -> Bool {
+        return false
     }
     
     func addPlayerTriangle(scene: SCNScene) {
