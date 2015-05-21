@@ -208,16 +208,16 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         */
         
         let maxX = Float(3)
-        let minX = Float(0)
+        let minX = Float(-3)
         let maxY = Float(5)
-        let minY = Float(0)
+        let minY = Float(-5)
         
         var xs = [Float]()
         var ys = [Float]()
         
         for ii in 0...(numVertices-1) {
-            xs.append(Float(((Float(arc4random()) / Float(UINT32_MAX)) * maxX)))
-            ys.append(Float(((Float(arc4random()) / Float(UINT32_MAX)) * maxY)))
+            xs.append(Float(((Float(arc4random()) / Float(UINT32_MAX)) * (maxX - minX)) - maxX))
+            ys.append(Float(((Float(arc4random()) / Float(UINT32_MAX)) * (maxY - minY)) - maxY))
         }
         
         println(xs)
