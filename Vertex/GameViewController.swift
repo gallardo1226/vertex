@@ -21,6 +21,8 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
     var x: Float = 0.0
     var score = 0
     
+    var tempCounter = 1000
+    
     var numVertices = 3
     var holeNode = SCNNode()
     var firstHole = true
@@ -29,6 +31,8 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
     var fillNode = SCNNode()
     var fillPositions = [SCNVector3]()
     var firstFill = true
+    
+    var scoreLabel = UILabel()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -79,10 +83,17 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
             gestureRecognizers.extend(existingGestureRecognizers)
         }
         scnView.gestureRecognizers = gestureRecognizers
+        
+        var scoreLabel = UILabel()
+        scoreLabel.text = "0"
+        scoreLabel.textColor = UIColor.yellowColor()
+        scoreLabel.center = CGPointMake(0, 0)
+        var view = SCNView()
+        
     }
     
     func renderer(aRenderer: SCNSceneRenderer, updateAtTime time: NSTimeInterval) {
-        
+        /*
         // If hole has been covered, generate new hole
         if (!shapeUncovered) {
             sizeOfHole = generateShape(numVertices)
@@ -93,6 +104,16 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
                 score += Int(sizeOfHole)
             }
         }
+        */
+        if (tempCounter >= 100) {
+            sizeOfHole = generateShape(numVertices)
+            score += 1
+            scoreLabel.text = String(score)
+            tempCounter = 0
+        }
+        
+        tempCounter++
+        
         // Increment the cycle count
         cycleCount++
             
@@ -178,7 +199,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
     func generateShape(numVertices: Int) -> Double {
         
         /*
-        let screenSize = self.view.frame.size
+        let screenSize = (self.view as! SCNView).window?.bounds
         
         let maxX = Float(screenSize.width)
         let minX = Float(0)
@@ -199,6 +220,8 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
             ys.append(Float(((Float(arc4random()) / Float(UINT32_MAX)) * maxY)))
         }
         
+        println(xs)
+        println(ys)
         
         if (firstHole) {
             (self.view as! SCNView).scene?.rootNode.addChildNode(holeNode)
@@ -215,7 +238,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         }
         
         var indices:[CInt] = [
-            0, 1, 2,
+            0, 1, 2
         ]
         var indexData = NSData(bytes:&indices, length:sizeof(CInt) * indices.count)
         var element = SCNGeometryElement(data: indexData, primitiveType: SCNGeometryPrimitiveType.Triangles, primitiveCount: 2, bytesPerIndex: sizeof(CInt))
@@ -240,7 +263,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
 
         sum += Double(xVals[numVertices-1]*yVals[0] - yVals[numVertices-1]*xVals[0])
         
-        return 0.5 * Double(abs(sum))
+        return 0.15 * Double(abs(sum))
         
     }
     
@@ -254,7 +277,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         var fillPlane = SCNPlane(width: 50, height: 0.1)
         fillPlane.firstMaterial!.diffuse.contents = UIColor.cyanColor()
         var tempNode = SCNNode(geometry: fillPlane)
-        tempNode.position = SCNVector3(x: Float(-10), y: Float(newFill-10), z: Float(0))
+        tempNode.position = SCNVector3(x: Float(-10), y: Float(newFill-7), z: Float(0))
         (self.view as! SCNView).scene?.rootNode.replaceChildNode(fillNode, with: tempNode)
         fillNode = tempNode
 
