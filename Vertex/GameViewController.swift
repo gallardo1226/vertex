@@ -70,11 +70,16 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         
         // configure the view
         scnView.backgroundColor = UIColor.lightGrayColor()
+
+		let target = scene.rootNode.childNodeWithName("Corner", recursively: true)!
         
         // add a tap gesture recognizer
-        let tapGesture = UITapGestureRecognizer(target: self, action: "handleTap:")
+		let dragGesture = UILongPressGestureRecognizer(target: target, action: "handleDrag:")
+		dragGesture.numberOfTouchesRequired = 0
+		dragGesture.minimumPressDuration = 0
+
         var gestureRecognizers = [AnyObject]()
-        gestureRecognizers.append(tapGesture)
+        gestureRecognizers.append(dragGesture)
         if let existingGestureRecognizers = scnView.gestureRecognizers {
             gestureRecognizers.extend(existingGestureRecognizers)
         }
@@ -100,7 +105,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         if (cycleCount == cyclesBetweenNextFill) {
             cycleCount = 0
             fillLevel += fillSpace(sizeOfHole)
-            println(fillLevel)
+//            println(fillLevel)
         }
         
         drawFillLine(fillLevel)
@@ -223,7 +228,6 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         
         var hole = SCNGeometry(sources: [vertexSource], elements: [element])
         hole.firstMaterial!.diffuse.contents = UIColor.blueColor()
-        //holeNode = SCNNode(geometry: hole)
         var tempNode = SCNNode(geometry: hole)
         (self.view as! SCNView).scene?.rootNode.replaceChildNode(holeNode, with: tempNode)
         holeNode = tempNode
@@ -260,7 +264,6 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
 
     }
     
-    
     func fillSpace(size: Double) -> Double {
         return size/100
     }
@@ -269,19 +272,27 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         return false
     }
     
-    func handleTap(gestureRecognize: UIGestureRecognizer) {
+    func handleDrag(recognizer: UILongPressGestureRecognizer) {
+//		let translation = recognizer.translationInView(self.view)
+//		if let view = recognizer.view {
+//			view.center = CGPoint(x:view.center.x + translation.x,
+//				y:view.center.y + translation.y)
+//		}
+//		recognizer.setTranslation(CGPointZero, inView: self.view)
+
+
         // retrieve the SCNView
         let scnView = self.view as! SCNView
         // check what nodes are tapped
-        let p = gestureRecognize.locationInView(scnView)
+        let p = recognizer.locationInView(scnView)
         if let hitResults = scnView.hitTest(p, options: nil) {
             // check that we clicked on at least one object
             if hitResults.count > 0 {
                 // retrieved the first clicked object
                 let result: AnyObject! = hitResults[0]
-                
                 if result.node.name == "Corner" {
-                    println("Found corner")
+					result.node.position.x = result.worldCoordinates.x
+					result.node.position.y = result.worldCoordinates.y
                 }
             }
         }
