@@ -10,9 +10,15 @@ import UIKit
 import QuartzCore
 import SceneKit
 
+struct vector {
+    var vec = SCNVector3()
+    var angle: Float = 0
+}
+
+
 class GameViewController: UIViewController, SCNSceneRendererDelegate {
     var fillLevel = 0.0
-    let maxFill = 100.0
+    let maxFill = 16.0
     let cyclesBetweenNextFill = 1
     let maxArea = 100.0
     var cycleCount = 0
@@ -20,6 +26,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
     var shapeUncovered = false
     var x: Float = 0.0
     var score = 0
+    var winScore = 5
     
     var tempCounter = 1000
     
@@ -32,7 +39,10 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
     var fillPositions = [SCNVector3]()
     var firstFill = true
     
+    var waterNode = SCNNode()
+    
     var spillNode = SCNNode()
+    var spillTriNode = SCNNode()
     var spillPositions = [SCNVector3]()
     var firstSpill = true
     var zerothSpillIsHigher = true
@@ -118,7 +128,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
             tempCounter = 0
         }
         
-        drawSpillLine()
+        //drawSpillLine()
         
         tempCounter++
         
@@ -128,14 +138,23 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         // If needed, reset cycle count and fill space
         if (cycleCount == cyclesBetweenNextFill) {
             cycleCount = 0
-            //fillLevel += fillSpace(sizeOfHole)
+            if (fillLevel <= maxFill) {
+                fillLevel += fillSpace(sizeOfHole)
+            }
+            
             //println(fillLevel)
         }
         
         drawFillLine(fillLevel)
         
-        if (fillLevel >= maxFill) {
+        if (fillLevel > maxFill) {
             // Game Over
+        }
+        
+        if (score >= winScore) {
+            numVertices += 1
+            fillLevel = 0.0
+            score = 0
         }
     }
 
@@ -233,20 +252,14 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
                 xs.append(Float(((Float(arc4random()) / Float(UINT32_MAX)) * (maxX - minX)) - maxX))
                 ys.append(Float(((Float(arc4random()) / Float(UINT32_MAX)) * (maxY - minY)) - maxY))
             }
-            //println(xs)
-            //println(ys)
         
         } while (distantEnough(xs, yVals: ys) && fatEnough(xs, yVals: ys) && (calcArea(xs, yVals: ys) < 1.5) && (calcArea(xs, yVals: ys) >= 3))
-        
         
         if (firstHole) {
             (self.view as! SCNView).scene?.rootNode.addChildNode(holeNode)
             firstHole = false
         }
 
-        
-        //(self.view as! SCNView).scene?.rootNode.addChildNode(holeNode)
-        
         holePositions = [SCNVector3]()
         spillPositions = [SCNVector3]()
         spillPositions = findSpillPoints(xs, yVals: ys)
@@ -254,32 +267,21 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         for jj in 0...(numVertices-1) {
             holePositions.append(SCNVector3Make(Float(xs[jj]), Float(ys[jj]), 0))
         }
-        /*
-        print(holePositions[0].x)
-        print(" ")
-        print(holePositions[0].y)
-        print(" ")
-        println(holePositions[0].z)
         
-        print(holePositions[1].x)
-        print(" ")
-        print(holePositions[1].y)
-        print(" ")
-        println(holePositions[1].z)
+        holePositions = sortPoints(holePositions)
+
+        var indices = [CInt]()
+        var index: CInt = 1
         
-        print(holePositions[2].x)
-        print(" ")
-        print(holePositions[2].y)
-        print(" ")
-        println(holePositions[2].z)
+        for ii in 0...(numVertices-3) {
+            indices.append(CInt(0))
+            indices.append(index)
+            indices.append(index+1)
+            index++
+        }
         
-        println(" ")
-        */
-        var indices:[CInt] = [
-            0, 1, 2
-        ]
         var indexData = NSData(bytes:&indices, length:sizeof(CInt) * indices.count)
-        var element = SCNGeometryElement(data: indexData, primitiveType: SCNGeometryPrimitiveType.Triangles, primitiveCount: 2, bytesPerIndex: sizeof(CInt))
+        var element = SCNGeometryElement(data: indexData, primitiveType: SCNGeometryPrimitiveType.Triangles, primitiveCount: numVertices-2, bytesPerIndex: sizeof(CInt))
         var vertexSource = SCNGeometrySource(vertices: holePositions, count: numVertices)
         
         var hole = SCNGeometry(sources: [vertexSource], elements: [element])
@@ -304,6 +306,48 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         
     }
     
+    func sortPoints(hp: [SCNVector3]) -> [SCNVector3] {
+        
+        var minX = MAXFLOAT
+        var maxX = -1*MAXFLOAT
+        var minY = MAXFLOAT
+        var maxY = -1*MAXFLOAT
+        
+        for ii in 0...(numVertices-1) {
+            if (hp[ii].x < minX) {
+                minX = hp[ii].x
+            }
+            if (hp[ii].x > maxX) {
+                maxX = hp[ii].x
+            }
+            if (hp[ii].y < minY) {
+                minY = hp[ii].y
+            }
+            if (hp[ii].y > maxY) {
+                maxY = hp[ii].y
+            }
+        }
+        
+        var center = SCNVector3Make(maxX-minX, maxY-minY, 0)
+        
+        var vectorArray = [vector]()
+        
+        for jj in 0...(numVertices-1) {
+            var tempVec = vector(vec: hp[jj], angle: atan2(hp[jj].x - center.x, hp[jj].y - center.y))
+            vectorArray.append(tempVec)
+        }
+        
+        vectorArray.sort({$0.angle < $1.angle})
+        
+        var newArray = [SCNVector3]()
+        
+        for kk in 0...(numVertices-1) {
+            newArray.append(vectorArray[kk].vec)
+        }
+        
+        return newArray
+        
+    }
     
     func distantEnough(xVals: [Float], yVals: [Float]) -> Bool {
         var isBigEnough = true
@@ -330,66 +374,26 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
             
         }
         
-        
         for ii in 0...(numVertices-1) {
-            
             
             var dotProduct = (vectors[2*ii].x*vectors[2*ii+1].x) + (vectors[2*ii].y*vectors[2*ii+1].y)
             var distProduct = simpleDist([vectors[2*ii].x, vectors[2*ii].y]) * simpleDist([vectors[2*ii+1].x, vectors[2*ii+1].y])
             
-            
-            var x = dotProduct/distProduct
-            
+            var x = acos(dotProduct/distProduct)
             
             
-            //let x = acos((distanceFormula(xVals[ii], x2: xVals[(ii+1)%numVertices], y1: yVals[ii], y2: yVals[(ii+1)%numVertices]) + distanceFormula(xVals[ii], x2: xVals[(ii+2)%numVertices], y1: yVals[ii], y2: yVals[(ii+2)%numVertices]) - distanceFormula(xVals[(ii+1)%numVertices], x2: xVals[(ii+2)%numVertices], y1: yVals[(ii+1)%numVertices], y2: yVals[(ii+2)%numVertices]))/(2 * distanceFormula(xVals[ii], x2: xVals[(ii+1)%numVertices], y1: yVals[ii], y2: yVals[(ii+1)%numVertices]) * (distanceFormula(xVals[ii], x2: xVals[(ii+2)%numVertices], y1: yVals[ii], y2: yVals[(ii+2)%numVertices]))))
-            
-            
-            
-            //println(x)
-            
-            if (abs(x) < (3.14/6)) {
-                isFatEnough = false
+            if (x >= 0) {
+                if (x < 3.14/6 || x > (5*3.14)/6) {
+                    isFatEnough = false
+                }
+            } else {
+                if (x > -3.14/6 || x < (-5*3.14)/6) {
+                    isFatEnough = false
+                }
             }
-            
         }
         
         return isFatEnough
-        
-        
-        /*
-        var x: Float = 0
-        var y: Float = 0
-        var midPointX = [Float]()
-        var midPointY = [Float]()
-        
-        for ii in 0...(numVertices-1) {
-            
-            if (xVals[ii] > xVals[(ii+1)%numVertices]) {
-                x = xVals[ii] - xVals[(ii+1)%numVertices]
-            } else {
-                x = xVals[(ii+1)%numVertices] - xVals[ii]
-            }
-            
-            if (yVals[ii] > yVals[(ii+1)%numVertices]) {
-                y = xVals[ii] - yVals[(ii+1)%numVertices]
-            } else {
-                y = yVals[(ii+1)%numVertices] - yVals[ii]
-            }
-            
-            midPointX.append(x)
-            midPointY.append(y)
-        }
-        
-        for ii in 0...(numVertices-1) {
-            
-            if (sqrt(pow((xVals[ii]-midPointX[(ii+1)%numVertices]), 2) + pow((yVals[ii]-midPointY[(ii+1)%numVertices]), 2)) < 0.5) {
-                isFatEnough = false
-            }
-            
-        }
-        */
-        
     }
     
     func distanceFormula(x1: Float, x2: Float, y1: Float, y2: Float) -> Float {
@@ -404,15 +408,24 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         
         if (firstFill) {
             (self.view as! SCNView).scene?.rootNode.addChildNode(fillNode)
+            (self.view as! SCNView).scene?.rootNode.addChildNode(waterNode)
             firstFill = false
         }
         
         var fillPlane = SCNPlane(width: 13, height: 0.1)
         fillPlane.firstMaterial!.diffuse.contents = UIColor.cyanColor()
         var tempNode = SCNNode(geometry: fillPlane)
-        tempNode.position = SCNVector3(x: Float(0), y: Float(newFill-7.5), z: Float(0))
+        tempNode.position = SCNVector3(x: Float(0), y: Float(newFill-8), z: Float(0))
         (self.view as! SCNView).scene?.rootNode.replaceChildNode(fillNode, with: tempNode)
         fillNode = tempNode
+        
+        var waterPlane = SCNPlane(width: 13, height: 20)
+        waterPlane.firstMaterial!.diffuse.contents = UIColor.cyanColor()
+        var tempNode2 = SCNNode(geometry: waterPlane)
+        tempNode2.position = SCNVector3(x: Float(0), y: Float(newFill-8-10), z: Float(0))
+        tempNode2.opacity = 0.5
+        (self.view as! SCNView).scene?.rootNode.replaceChildNode(waterNode, with: tempNode2)
+        waterNode = tempNode2
 
     }
     
@@ -420,35 +433,75 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         
         if (firstSpill) {
             (self.view as! SCNView).scene?.rootNode.addChildNode(spillNode)
+            (self.view as! SCNView).scene?.rootNode.addChildNode(spillTriNode)
             firstSpill = false
         }
         
         var w: Float = abs(spillPositions[0].x - spillPositions[1].x)
-        var h: Float = 0
+        var h: Float = abs(Float(spillPositions[0].y) - Float(fillLevel) - Float(8))
+        var hTri: Float = abs(spillPositions[0].y - spillPositions[1].y)
         var leastX: Float = 0
         var greatestY: Float = 0
         
-        if (zerothSpillIsHigher) {
-            h = abs(spillPositions[0].y - (Float(fillLevel)-7.5))
-            greatestY = spillPositions[0].y
-        } else {
-            h = abs(spillPositions[1].y - (Float(fillLevel)-7.5))
-            greatestY = spillPositions[1].y
-        }
-        
         if (zerothSpillIsFarther) {
-            leastX = spillPositions[0].x
-        } else {
             leastX = spillPositions[1].x
+        } else {
+            leastX = spillPositions[0].x
         }
         
+        
+        if (spillPositions[0].y < Float(fillLevel-8)) {
+            var tempNode = SCNNode()
+            (self.view as! SCNView).scene?.rootNode.replaceChildNode(spillTriNode, with: tempNode)
+            spillTriNode = tempNode
+            
+            var tempNode2 = SCNNode()
+            (self.view as! SCNView).scene?.rootNode.replaceChildNode(spillNode, with: tempNode2)
+            spillNode = tempNode2
+            
+        } else {
+            
+            let positions = [
+                SCNVector3Make(spillPositions[0].x, spillPositions[1].y, 0),
+                SCNVector3Make(spillPositions[1].x, spillPositions[1].y, 0),
+                SCNVector3Make(spillPositions[1].x, spillPositions[0].y, 0)
+            ]
+            var indices:[CInt] = [
+                0, 1, 2
+            ]
+            let indexData = NSData(bytes:&indices, length:sizeof(CInt) * indices.count)
+            var corners:[CInt] = [0, 1, 2]
+            let cornerData = NSData(bytes:&corners, length:sizeof(CInt) * corners.count)
+            let element = SCNGeometryElement(data: indexData, primitiveType: SCNGeometryPrimitiveType.Triangles, primitiveCount: 1, bytesPerIndex: sizeof(CInt))
+            let vertexSource = SCNGeometrySource(vertices: positions, count: 3)
+            let triangle = SCNGeometry(sources: [vertexSource], elements: [element])
+            triangle.firstMaterial!.diffuse.contents = UIColor.blueColor()
+            let triangleNode = SCNNode(geometry: triangle)
+            (self.view as! SCNView).scene?.rootNode.replaceChildNode(spillTriNode, with: triangleNode)
+            spillTriNode = triangleNode
+            
+            var spillPlane = SCNPlane(width: CGFloat(w), height: CGFloat(h))
+            spillPlane.firstMaterial!.diffuse.contents = UIColor.blueColor()
+            var tempNode = SCNNode(geometry: spillPlane)
+            tempNode.position = SCNVector3(x: Float(leastX+(0.5*w)), y: Float(spillPositions[0].y-Float(0.5*h)), z: Float(0))
+            (self.view as! SCNView).scene?.rootNode.replaceChildNode(spillNode, with: tempNode)
+            spillNode = tempNode
+            
+        }
+
+
+        
+        
+        
+        
+        /*
         var spillPlane = SCNPlane(width: CGFloat(w), height: CGFloat(h))
         spillPlane.firstMaterial!.diffuse.contents = UIColor.blueColor()
         var tempNode = SCNNode(geometry: spillPlane)
         tempNode.position = SCNVector3(x: Float(leastX+(0.5*w)), y: Float(greatestY-(0.5*h)), z: Float(0))
         (self.view as! SCNView).scene?.rootNode.replaceChildNode(spillNode, with: tempNode)
         spillNode = tempNode
-        
+        */
     }
     
     func findSpillPoints(xVals: [Float], yVals: [Float]) -> [SCNVector3] {
@@ -464,23 +517,37 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         var v1 = SCNVector3Make(xVals[(numVertices+minIndex-1)%numVertices]-xVals[minIndex], yVals[(numVertices+minIndex-1)%numVertices]-yVals[minIndex], 0)
         var v2 = SCNVector3Make(xVals[(minIndex+1)%numVertices]-xVals[minIndex], yVals[(minIndex+1)%numVertices]-yVals[minIndex], 0)
         
+        /*
         if (yVals[(numVertices+minIndex-1)%numVertices] > yVals[(minIndex+1)%numVertices]) {
             zerothSpillIsHigher = true
         } else {
             zerothSpillIsHigher = false
         }
+        */
         
+        /*
         if (xVals[(numVertices+minIndex-1)%numVertices] > xVals[(minIndex+1)%numVertices]) {
-            zerothSpillIsHigher = false
+            zerothSpillIsFarther = false
         } else {
-            zerothSpillIsHigher = true
+            zerothSpillIsFarther = true
         }
+        */
         
         var d1 = simpleDist([v1.x, v1.y])
         var d2 = simpleDist([v2.x, v2.y])
         
-        points.append(SCNVector3Make(xVals[minIndex]+(v1.x*0.15), yVals[minIndex]+(v1.y*0.15), 0))
-        points.append(SCNVector3Make(xVals[minIndex]+(v2.x*0.15), yVals[minIndex]+(v2.y*0.15), 0))
+        points.append(SCNVector3Make(xVals[minIndex], yVals[minIndex], 0))
+        if (zerothSpillIsHigher) {
+            points.append(SCNVector3Make(xVals[minIndex]+(v2.x*0.15), yVals[minIndex]+(v2.y*0.15), 0))
+        } else {
+            points.append(SCNVector3Make(xVals[minIndex]+(v1.x*0.15), yVals[minIndex]+(v1.y*0.15), 0))
+        }
+        
+        if (points[0].x < points[1].x) {
+            zerothSpillIsFarther = false
+        } else {
+            zerothSpillIsFarther = true
+        }
         
         return points
         
@@ -488,7 +555,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
     
     
     func fillSpace(size: Double) -> Double {
-        return size/100
+        return size/300
     }
     
     func isHoleCovered() -> Bool {
