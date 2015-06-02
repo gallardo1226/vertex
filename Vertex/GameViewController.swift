@@ -10,7 +10,19 @@ import UIKit
 import QuartzCore
 import SceneKit
 
+struct States {
+	let began = UIGestureRecognizerState.Began
+	let ended = UIGestureRecognizerState.Ended
+	let changed = UIGestureRecognizerState.Changed
+	let cancelled = UIGestureRecognizerState.Cancelled
+	let failed = UIGestureRecognizerState.Failed
+	let possible = UIGestureRecognizerState.Possible
+}
+
 class GameViewController: UIViewController, SCNSceneRendererDelegate {
+
+	let states = States()
+
     var fillLevel = 0.0
     let maxFill = 100.0
     let cyclesBetweenNextFill = 1
@@ -29,6 +41,8 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
     var fillNode = SCNNode()
     var fillPositions = [SCNVector3]()
     var firstFill = true
+
+	var selectedNode:SCNNode? = nil
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -70,20 +84,9 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         
         // configure the view
         scnView.backgroundColor = UIColor.lightGrayColor()
-
-		let target = scene.rootNode.childNodeWithName("Corner", recursively: true)!
         
         // add a tap gesture recognizer
-		let dragGesture = UILongPressGestureRecognizer(target: target, action: "handleDrag:")
-		dragGesture.numberOfTouchesRequired = 0
-		dragGesture.minimumPressDuration = 0
-
-        var gestureRecognizers = [AnyObject]()
-        gestureRecognizers.append(dragGesture)
-        if let existingGestureRecognizers = scnView.gestureRecognizers {
-            gestureRecognizers.extend(existingGestureRecognizers)
-        }
-        scnView.gestureRecognizers = gestureRecognizers
+		configureGestures(scnView)
     }
     
     func renderer(aRenderer: SCNSceneRenderer, updateAtTime time: NSTimeInterval) {
@@ -271,31 +274,51 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
     func isHoleCovered() -> Bool {
         return false
     }
-    
-    func handleDrag(recognizer: UILongPressGestureRecognizer) {
-//		let translation = recognizer.translationInView(self.view)
-//		if let view = recognizer.view {
-//			view.center = CGPoint(x:view.center.x + translation.x,
-//				y:view.center.y + translation.y)
-//		}
-//		recognizer.setTranslation(CGPointZero, inView: self.view)
 
+	func configureGestures(view: SCNView) {
+		let selectGesture = UITapGestureRecognizer(target: self, action: "handleSelect")
+		selectGesture.numberOfTouchesRequired = 1
+		if selectGesture.state == states.ended ||
+			selectGesture.state == states.cancelled {
+			selectedNode = nil
+		}
 
-        // retrieve the SCNView
-        let scnView = self.view as! SCNView
-        // check what nodes are tapped
-        let p = recognizer.locationInView(scnView)
-        if let hitResults = scnView.hitTest(p, options: nil) {
-            // check that we clicked on at least one object
-            if hitResults.count > 0 {
-                // retrieved the first clicked object
-                let result: AnyObject! = hitResults[0]
-                if result.node.name == "Corner" {
-					result.node.position.x = result.worldCoordinates.x
-					result.node.position.y = result.worldCoordinates.y
-                }
-            }
-        }
+		let dragGesture = UIPanGestureRecognizer(target: self, action: "handleDrag:")
+
+		var gestureRecognizers = [AnyObject]()
+		gestureRecognizers.append(dragGesture)
+		if let existingGestureRecognizers = view.gestureRecognizers {
+			gestureRecognizers.extend(existingGestureRecognizers)
+		}
+		view.gestureRecognizers = gestureRecognizers
+	}
+
+	func handleSelect(recognizer: UITapGestureRecognizer) {
+		// retrieve the SCNView
+		let scnView = self.view as! SCNView
+		// check what nodes are tapped
+		let p = recognizer.locationInView(scnView)
+		if let hitResults = scnView.hitTest(p, options: nil) {
+			// check that we clicked on at least one object
+			if hitResults.count > 0 {
+				// retrieved the first clicked object
+				let result: AnyObject! = hitResults[0]
+				if result.node.name == "Corner" {
+					selectedNode = result.node
+				}
+			}
+		}
+	}
+
+    func handleDrag(recognizer: UIPanGestureRecognizer) {
+		let translation = recognizer.translationInView(self.view)
+		if let view = recognizer.view {
+			if selectedNode != nil {
+			view.center = CGPoint(x:view.center.x + translation.x,
+				y:view.center.y + translation.y)
+			}
+		}
+		recognizer.setTranslation(CGPointZero, inView: self.view)
     }
     
     
