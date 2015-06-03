@@ -10,18 +10,7 @@ import UIKit
 import QuartzCore
 import SceneKit
 
-struct States {
-	let began = UIGestureRecognizerState.Began
-	let ended = UIGestureRecognizerState.Ended
-	let changed = UIGestureRecognizerState.Changed
-	let cancelled = UIGestureRecognizerState.Cancelled
-	let failed = UIGestureRecognizerState.Failed
-	let possible = UIGestureRecognizerState.Possible
-}
-
 class GameViewController: UIViewController, SCNSceneRendererDelegate {
-
-	let states = States()
 
     var fillLevel = 0.0
     let maxFill = 100.0
@@ -43,6 +32,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
     var firstFill = true
 
 	var selectedNode:SCNNode? = nil
+	var dragPoint:CGPoint? = nil
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -183,6 +173,10 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         scene.rootNode.addChildNode(squareNode)
     }
 
+	func generateShapeFromNodes(vertices: [SCNNode]) {
+
+	}
+
     func generateShape(numVertices: Int) -> Double {
         
         /*
@@ -276,51 +270,54 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
     }
 
 	func configureGestures(view: SCNView) {
-		let selectGesture = UITapGestureRecognizer(target: self, action: "handleSelect")
-		selectGesture.numberOfTouchesRequired = 1
-		if selectGesture.state == states.ended ||
-			selectGesture.state == states.cancelled {
-			selectedNode = nil
-		}
-
-		let dragGesture = UIPanGestureRecognizer(target: self, action: "handleDrag:")
-
+		let selectGesture = UILongPressGestureRecognizer(target: self, action: "handleSelect:")
+		selectGesture.minimumPressDuration = 0
+		selectGesture.allowableMovement = CGFloat.max
+		
 		var gestureRecognizers = [AnyObject]()
-		gestureRecognizers.append(dragGesture)
+		gestureRecognizers.append(selectGesture)
 		if let existingGestureRecognizers = view.gestureRecognizers {
 			gestureRecognizers.extend(existingGestureRecognizers)
 		}
 		view.gestureRecognizers = gestureRecognizers
 	}
 
-	func handleSelect(recognizer: UITapGestureRecognizer) {
-		// retrieve the SCNView
+	func handleSelect(recognizer: UILongPressGestureRecognizer) {
 		let scnView = self.view as! SCNView
-		// check what nodes are tapped
-		let p = recognizer.locationInView(scnView)
-		if let hitResults = scnView.hitTest(p, options: nil) {
-			// check that we clicked on at least one object
-			if hitResults.count > 0 {
-				// retrieved the first clicked object
-				let result: AnyObject! = hitResults[0]
-				if result.node.name == "Corner" {
-					selectedNode = result.node
+		if recognizer.state == States.began {
+			let p = recognizer.locationInView(scnView)
+			if let hitResults = scnView.hitTest(p, options: nil) {
+				if hitResults.count > 0 {
+					let result: AnyObject! = hitResults[0]
+					if result.node.name == "Corner" {
+						selectedNode = result.node
+						selectedNode?.geometry?.firstMaterial?.diffuse.contents = UIColor.redColor()
+						dragPoint = p
+					}
 				}
 			}
 		}
-	}
-
-    func handleDrag(recognizer: UIPanGestureRecognizer) {
-		let translation = recognizer.translationInView(self.view)
-		if let view = recognizer.view {
-			if selectedNode != nil {
-			view.center = CGPoint(x:view.center.x + translation.x,
-				y:view.center.y + translation.y)
+		if recognizer.state == States.changed {
+			let p = recognizer.locationInView(scnView)
+			if let node = selectedNode as SCNNode! {
+				if let point = dragPoint as CGPoint! {
+					let xDiff = Float(p.x - point.x) / 38.5
+					let yDiff = Float(p.y - point.y) / 38.5
+					node.position = SCNVector3(
+						x: node.position.x + xDiff,
+						y: node.position.y - yDiff,
+						z: node.position.z
+					)
+					dragPoint = p
+				}
 			}
 		}
-		recognizer.setTranslation(CGPointZero, inView: self.view)
-    }
-    
+		if recognizer.state == States.ended {
+			selectedNode?.geometry?.firstMaterial?.diffuse.contents = UIColor.whiteColor()
+			selectedNode = nil
+			dragPoint = nil
+		}
+	}
     
     override func shouldAutorotate() -> Bool {
         return true
