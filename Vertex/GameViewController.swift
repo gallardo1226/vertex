@@ -66,9 +66,6 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         (self.view as! SCNView).delegate = self
         (self.view as! SCNView).playing = true
         
-        // create a new scene
-        scene = SCNScene()
-        
 //        addPlayerSquare(scene)
         addPlayerTriangle(scene)
         
@@ -102,20 +99,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         scnView.backgroundColor = UIColor.lightGrayColor()
         
         // add a tap gesture recognizer
-        let tapGesture = UITapGestureRecognizer(target: self, action: "handleTap:")
-        var gestureRecognizers = [AnyObject]()
-        gestureRecognizers.append(tapGesture)
-        if let existingGestureRecognizers = scnView.gestureRecognizers {
-            gestureRecognizers.extend(existingGestureRecognizers)
-        }
-        scnView.gestureRecognizers = gestureRecognizers
-        
-        var scoreLabel = UILabel()
-        scoreLabel.text = "0"
-        scoreLabel.textColor = UIColor.yellowColor()
-        scoreLabel.center = CGPointMake(0, 0)
-        var view = SCNView()
-        
+		configureGestures(scnView)
     }
     
     func renderer(aRenderer: SCNSceneRenderer, updateAtTime time: NSTimeInterval) {
@@ -204,7 +188,6 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
             triangleNode.addChildNode(cornerNode)
         }
         scene.rootNode.addChildNode(triangleNode)
-        
     }
     
     func addPlayerSquare(scene: SCNScene) {
@@ -242,6 +225,10 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         return Float(M_PI)/180*angle
     }
     
+	func generateShapeFromNodes(vertices: [SCNNode]) {
+
+	}
+
     func generateShape(numVertices: Int) -> Double {
         
         /*
@@ -737,6 +724,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         return points
         
     }
+    
     
     func fillSpace(size: Double) -> Double {
         return size/300
