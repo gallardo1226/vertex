@@ -9,14 +9,15 @@
 import UIKit
 import QuartzCore
 import SceneKit
+import Darwin
 
 struct vector {
     var vec = SCNVector3()
-    var angle: Float = 0
+    var distance: Float = 0
 }
 
-
 class GameViewController: UIViewController, SCNSceneRendererDelegate {
+    
     var fillLevel = 0.0
     let maxFill = 16.0
     let cyclesBetweenNextFill = 1
@@ -50,6 +51,12 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
     
     var scoreLabel = UILabel()
     
+    var confiningAngle: Float = 0
+    var xLimit = 0.5
+    var yLimit = 0.5
+    
+    var scene = SCNScene()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -57,7 +64,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         (self.view as! SCNView).playing = true
         
         // create a new scene
-        let scene = SCNScene()
+        scene = SCNScene()
         
 //        addPlayerSquare(scene)
         addPlayerTriangle(scene)
@@ -121,6 +128,9 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
             }
         }
         */
+        
+        confiningAngle = d2r((180)*Float(numVertices-2)/Float(numVertices))
+        
         if (tempCounter >= 100) {
             sizeOfHole = generateShape(numVertices)
             score += 1
@@ -139,7 +149,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         if (cycleCount == cyclesBetweenNextFill) {
             cycleCount = 0
             if (fillLevel <= maxFill) {
-                fillLevel += fillSpace(sizeOfHole)
+                fillLevel += fillSpace(0.5*sizeOfHole)
             }
             
             //println(fillLevel)
@@ -156,6 +166,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
             fillLevel = 0.0
             score = 0
         }
+        
     }
 
     func addPlayerTriangle(scene: SCNScene) {
@@ -224,6 +235,10 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         scene.rootNode.addChildNode(squareNode)
     }
 
+    func d2r(angle: Float) -> Float {
+        return Float(M_PI)/180*angle
+    }
+    
     func generateShape(numVertices: Int) -> Double {
         
         /*
@@ -242,7 +257,173 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         
         var xs = [Float]()
         var ys = [Float]()
+        var bxs = [Float]()
+        var bys = [Float]()
+        var barys = [Float]()
         
+        var centerX = Float(((Float(arc4random()) / Float(UINT32_MAX)) * (maxX - minX - 1)) - maxX - 0.5)
+        var centerY = Float(((Float(arc4random()) / Float(UINT32_MAX)) * (maxY - minY - 1)) - maxY - 0.5)
+        var rotationAngle = Float(((Float(arc4random()) / Float(UINT32_MAX)) * d2r(360)))
+        
+        var currentAngle = (d2r(90) - confiningAngle + d2r(360))
+        
+        // Find binding points
+        for ii in 0...(numVertices-1) {
+            var tempX = centerX
+            var tempY = centerY
+            
+            if ((currentAngle+d2r(360))%d2r(360) > d2r(0) && (currentAngle+d2r(360))%d2r(360) <= d2r(90)) {
+                
+                if ((maxX-centerX)/cos(currentAngle) < (maxY - centerY)/sin(currentAngle)) {
+                    tempX = maxX
+                    tempY = (maxX-centerX)*tan(currentAngle) + centerY
+                    println("1, Y")
+                    println(currentAngle)
+                    println(tan(currentAngle))
+                } else {
+                    tempX = (maxY-centerY)/tan(currentAngle) + centerX
+                    tempY = maxY
+                    println("1, X")
+                    println(currentAngle)
+                    println(tan(currentAngle))
+                }
+                
+            } else if ((currentAngle+d2r(360))%d2r(360) > d2r(90) && (currentAngle+d2r(360))%d2r(360) <= d2r(180)) {
+                
+                if ((centerX-minX)/cos(currentAngle) < (maxY - centerY)/sin(currentAngle)) {
+                    tempX = minX
+                    tempY = -(centerX-minX)*tan(currentAngle) + centerY
+                    println("2, Y")
+                    println(currentAngle)
+                    println(tan(currentAngle))
+                } else {
+                    tempX = centerX + (maxY-centerY)/tan(currentAngle)
+                    tempY = maxY
+                    println("2, X")
+                    println(currentAngle)
+                    println(tan(currentAngle))
+                }
+                
+            } else if ((currentAngle+d2r(360))%d2r(360) > d2r(180) && (currentAngle+d2r(360))%d2r(360) <= d2r(270)) {
+                
+                if ((centerX-minX)/cos(currentAngle) < (centerY-minY)/sin(currentAngle)) {
+                    tempX = minX
+                    tempY = centerY - (centerX-minX)*tan(currentAngle)
+                    println("3, Y")
+                    println(currentAngle)
+                    println(tan(currentAngle))
+                } else {
+                    tempX = centerX - (centerY-minY)/tan(currentAngle)
+                    tempY = minY
+                    println("3, X")
+                    println(centerY-minY)
+                    println(currentAngle)
+                    println(tan(currentAngle))
+                }
+                
+            } else {
+                
+                if ((maxX-centerX)/cos(currentAngle) < (centerY-minY)/sin(currentAngle)) {
+                    tempX = maxX
+                    tempY = centerY + (maxX-centerX)*tan(currentAngle)
+                    println("4, Y")
+                    println(currentAngle)
+                    println(tan(currentAngle))
+                } else {
+                    tempX = -(centerY-minY)/tan(currentAngle) + centerX
+                    tempY = minY
+                    println("4, X")
+                    println((centerY-minY)/tan(currentAngle))
+                    //println(currentAngle)
+                    //println(tan(currentAngle))
+                }
+                
+            }
+            
+            println(tempX)
+            println(tempY)
+            
+            if (tempX < minX) {
+                tempX = 0.75*minX
+            } else if (tempX > maxX) {
+                tempX = 0.75*maxX
+            }
+            
+            if (tempY < minY) {
+                tempY = 0.75*minY
+            } else if (tempY > maxY) {
+                tempY = 0.75*maxY
+            }
+            
+            bxs.append(tempX)
+            bys.append(tempY)
+            
+            
+            
+            currentAngle += 2*confiningAngle
+            currentAngle = currentAngle%d2r(360)
+        }
+        println(" ")
+        
+        var sum: Float = 0
+        
+        // Calc barycentric coordinates
+        for ii in 0...2 {
+            var temp = (Float(arc4random()) / Float(UINT32_MAX))
+            barys.append(temp)
+            sum += temp
+        }
+        
+        // Normalize barys
+        for ii in 0...2 {
+            barys[ii] /= sum
+        }
+        
+        //do {
+        
+            for ii in 0...(numVertices-1) {
+                
+                xs.append(barys[0]*centerX + barys[1]*bxs[ii] + barys[2]*bxs[(ii+1)%numVertices])
+                ys.append(barys[0]*centerY + barys[1]*bys[ii] + barys[2]*bys[(ii+1)%numVertices])
+                
+            }
+            
+        //} while (distantEnough(xs, yVals: ys) && fatEnough(xs, yVals: ys))
+        
+        
+        holePositions = [SCNVector3]()
+        
+        for jj in 0...(numVertices-1) {
+            holePositions.append(SCNVector3Make(Float(xs[jj]), Float(ys[jj]), 0))
+        }
+        
+        //holePositions = sortPoints(holePositions, center: SCNVector3Make(centerX, centerY, 0))
+        
+        var indices = [CInt]()
+        
+        for ii in 0...(numVertices-3) {
+            indices.append(CInt(0))
+            indices.append(ii+1)
+            indices.append(ii+2)
+        }
+        
+        if (firstHole) {
+            scene.rootNode.addChildNode(holeNode)
+            firstHole = false
+        }
+        
+        var indexData = NSData(bytes:&indices, length:sizeof(CInt) * indices.count)
+        var element = SCNGeometryElement(data: indexData, primitiveType: SCNGeometryPrimitiveType.Triangles, primitiveCount: numVertices-2, bytesPerIndex: sizeof(CInt))
+        var vertexSource = SCNGeometrySource(vertices: holePositions, count: numVertices)
+        
+        var hole = SCNGeometry(sources: [vertexSource], elements: [element])
+        hole.firstMaterial!.doubleSided = true
+        hole.firstMaterial!.diffuse.contents = UIColor.blueColor()
+        var tempNode = SCNNode(geometry: hole)
+        scene.rootNode.replaceChildNode(holeNode, with: tempNode)
+        holeNode = tempNode
+        
+        /*
         do {
         
             xs = [Float]()
@@ -281,7 +462,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         }
         
         var indexData = NSData(bytes:&indices, length:sizeof(CInt) * indices.count)
-        var element = SCNGeometryElement(data: indexData, primitiveType: SCNGeometryPrimitiveType.Triangles, primitiveCount: numVertices-2, bytesPerIndex: sizeof(CInt))
+        var element = SCNGeometryElement(data: indexData, primitiveType: SCNGeometryPrimitiveType.Line, primitiveCount: numVertices, bytesPerIndex: sizeof(CInt))
         var vertexSource = SCNGeometrySource(vertices: holePositions, count: numVertices)
         
         var hole = SCNGeometry(sources: [vertexSource], elements: [element])
@@ -289,8 +470,9 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         var tempNode = SCNNode(geometry: hole)
         (self.view as! SCNView).scene?.rootNode.replaceChildNode(holeNode, with: tempNode)
         holeNode = tempNode
-        
+        */
         return calcArea(xs, yVals: ys)
+
     }
     
     func calcArea(xVals: [Float], yVals: [Float]) -> Double {
@@ -302,42 +484,42 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
 
         sum += Double(xVals[numVertices-1]*yVals[0] - yVals[numVertices-1]*xVals[0])
         
-        return 0.15 * Double(abs(sum))
+        return Double(abs(sum))
         
     }
     
-    func sortPoints(hp: [SCNVector3]) -> [SCNVector3] {
+    func sortPoints(hp: [SCNVector3], center: SCNVector3) -> [SCNVector3] {
         
         var minX = MAXFLOAT
         var maxX = -1*MAXFLOAT
         var minY = MAXFLOAT
         var maxY = -1*MAXFLOAT
-        
+        /*
         for ii in 0...(numVertices-1) {
             if (hp[ii].x < minX) {
-                minX = hp[ii].x
+                hp[ii].x = minX
             }
             if (hp[ii].x > maxX) {
-                maxX = hp[ii].x
+                hp[ii].x = maxX
             }
             if (hp[ii].y < minY) {
-                minY = hp[ii].y
+                hp[ii].y = minY
             }
             if (hp[ii].y > maxY) {
-                maxY = hp[ii].y
+                hp[ii].y = maxY
             }
         }
-        
-        var center = SCNVector3Make(maxX-minX, maxY-minY, 0)
-        
+        */
         var vectorArray = [vector]()
         
         for jj in 0...(numVertices-1) {
-            var tempVec = vector(vec: hp[jj], angle: atan2(hp[jj].x - center.x, hp[jj].y - center.y))
+            var dist = sqrt(pow(center.x - hp[jj].x, 2) + pow(center.y - hp[jj].y, 2))
+            //var tempVec = vector(vec: hp[jj], angle: atan2(hp[jj].x - center.x, hp[jj].y - center.y))
+            var tempVec = vector(vec: hp[jj], distance: dist)
             vectorArray.append(tempVec)
         }
         
-        vectorArray.sort({$0.angle < $1.angle})
+        vectorArray.sort({$0.distance < $1.distance})
         
         var newArray = [SCNVector3]()
         
