@@ -39,6 +39,9 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
     var fillNode = SCNNode()
     var fillPositions = [SCNVector3]()
     var firstFill = true
+
+	var selectedNode:SCNNode? = nil
+	var dragPoint:CGPoint? = nil
     
     var waterNode = SCNNode()
     
@@ -735,7 +738,6 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         
     }
     
-    
     func fillSpace(size: Double) -> Double {
         return size/300
     }
@@ -743,25 +745,56 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
     func isHoleCovered() -> Bool {
         return false
     }
-    
-    func handleTap(gestureRecognize: UIGestureRecognizer) {
-        // retrieve the SCNView
-        let scnView = self.view as! SCNView
-        // check what nodes are tapped
-        let p = gestureRecognize.locationInView(scnView)
-        if let hitResults = scnView.hitTest(p, options: nil) {
-            // check that we clicked on at least one object
-            if hitResults.count > 0 {
-                // retrieved the first clicked object
-                let result: AnyObject! = hitResults[0]
-                
-                if result.node.name == "Corner" {
-                    println("Found corner")
-                }
-            }
-        }
-    }
-    
+
+	func configureGestures(view: SCNView) {
+		let selectGesture = UILongPressGestureRecognizer(target: self, action: "handleSelect:")
+		selectGesture.minimumPressDuration = 0
+		selectGesture.allowableMovement = CGFloat.max
+		
+		var gestureRecognizers = [AnyObject]()
+		gestureRecognizers.append(selectGesture)
+		if let existingGestureRecognizers = view.gestureRecognizers {
+			gestureRecognizers.extend(existingGestureRecognizers)
+		}
+		view.gestureRecognizers = gestureRecognizers
+	}
+
+	func handleSelect(recognizer: UILongPressGestureRecognizer) {
+		let scnView = self.view as! SCNView
+		if recognizer.state == States.began {
+			let p = recognizer.locationInView(scnView)
+			if let hitResults = scnView.hitTest(p, options: nil) {
+				if hitResults.count > 0 {
+					let result: AnyObject! = hitResults[0]
+					if result.node.name == "Corner" {
+						selectedNode = result.node
+						selectedNode?.geometry?.firstMaterial?.diffuse.contents = UIColor.redColor()
+						dragPoint = p
+					}
+				}
+			}
+		}
+		if recognizer.state == States.changed {
+			let p = recognizer.locationInView(scnView)
+			if let node = selectedNode as SCNNode! {
+				if let point = dragPoint as CGPoint! {
+					let xDiff = Float(p.x - point.x) / 38.5
+					let yDiff = Float(p.y - point.y) / 38.5
+					node.position = SCNVector3(
+						x: node.position.x + xDiff,
+						y: node.position.y - yDiff,
+						z: node.position.z
+					)
+					dragPoint = p
+				}
+			}
+		}
+		if recognizer.state == States.ended {
+			selectedNode?.geometry?.firstMaterial?.diffuse.contents = UIColor.whiteColor()
+			selectedNode = nil
+			dragPoint = nil
+		}
+	}
     
     override func shouldAutorotate() -> Bool {
         return true
