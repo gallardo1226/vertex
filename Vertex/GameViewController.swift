@@ -58,6 +58,8 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
     var xLimit = 0.5
     var yLimit = 0.5
     
+    var shapeCenter = SCNVector3()
+    
     var scene = SCNScene()
     
     override func viewDidLoad() {
@@ -103,7 +105,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
     }
     
     func renderer(aRenderer: SCNSceneRenderer, updateAtTime time: NSTimeInterval) {
-        /*
+        
         // If hole has been covered, generate new hole
         if (!shapeUncovered) {
             sizeOfHole = generateShape(numVertices)
@@ -111,20 +113,19 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         } else {
             if (isHoleCovered()) {
                 shapeUncovered = false
-                score += Int(sizeOfHole)
+                score += 1
             }
         }
-        */
-        
+
         confiningAngle = d2r((180)*Float(numVertices-2)/Float(numVertices))
-        
+        /*
         if (tempCounter >= 100) {
             sizeOfHole = generateShape(numVertices)
             score += 1
             scoreLabel.text = String(score)
             tempCounter = 0
         }
-        
+        */
         //drawSpillLine()
         
         tempCounter++
@@ -731,7 +732,27 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
     }
     
     func isHoleCovered() -> Bool {
-        return false
+        
+        var bools = [false, false, false]
+        var summaryBool = true
+        
+        for ii in 0...(numVertices-1) {
+            var vertex = scene.rootNode.childNodeWithName("Player", recursively: true).childNodes[ii].position
+            
+            for jj in 0...(numVertices-1) {
+                if (sqrt(pow(vertex.x - holePositions[jj].x, 2) + pow(vertex.y - holePositions[jj].y, 2)) <= 0.05) {
+                    bools[jj] = true
+                }
+            }
+        }
+        
+        for ii in 0...(numVertices-1) {
+            if (!bools[ii]) {
+                summaryBool = false
+            }
+        }
+        
+        return summaryBool
     }
 
 	func configureGestures(view: SCNView) {
@@ -768,6 +789,13 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
 				if let point = dragPoint as CGPoint! {
 					let xDiff = Float(p.x - point.x) / 38.5
 					let yDiff = Float(p.y - point.y) / 38.5
+                    
+                    var newX = node.position.x
+                    var newY = node.position.y
+                    var newZ = node.position.z
+                    
+                    
+                    
 					node.position = SCNVector3(
 						x: node.position.x + xDiff,
 						y: node.position.y - yDiff,
