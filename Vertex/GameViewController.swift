@@ -62,6 +62,11 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
     
     var scene = SCNScene()
     
+    var minX: Float = -5
+    var maxX: Float = 5
+    var minY: Float = -7
+    var maxY: Float = 7
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -232,20 +237,6 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
 	}
 
     func generateShape(numVertices: Int) -> Double {
-        
-        /*
-        let screenSize = (self.view as! SCNView).window?.bounds
-        
-        let maxX = Float(screenSize.width)
-        let minX = Float(0)
-        let maxY = Float(screenSize.height)
-        let minY = Float(0)
-        */
-        
-        let maxX = Float(5)
-        let minX = Float(-5)
-        let maxY = Float(7)
-        let minY = Float(-7)
         
         var xs = [Float]()
         var ys = [Float]()
@@ -737,7 +728,8 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         var summaryBool = true
         
         for ii in 0...(numVertices-1) {
-            var vertex = scene.rootNode.childNodeWithName("Player", recursively: true).childNodes[ii].position
+            var vertexArray = scene.rootNode.childNodeWithName("Player", recursively: false)?.childNodes as! [SCNNode]
+            var vertex = vertexArray[ii].position
             
             for jj in 0...(numVertices-1) {
                 if (sqrt(pow(vertex.x - holePositions[jj].x, 2) + pow(vertex.y - holePositions[jj].y, 2)) <= 0.05) {
@@ -790,11 +782,10 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
 					let xDiff = Float(p.x - point.x) / 38.5
 					let yDiff = Float(p.y - point.y) / 38.5
                     
-                    var newX = node.position.x
-                    var newY = node.position.y
-                    var newZ = node.position.z
+                    var newX = node.position.x + xDiff
+                    var newY = node.position.y - yDiff
                     
-                    
+                    //var newDiffs = adjustPositions(node.position.x, y: node.position.y, xDiff: xDiff, yDiff: yDiff, center: center)
                     
 					node.position = SCNVector3(
 						x: node.position.x + xDiff,
@@ -823,6 +814,59 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
 			dragPoint = nil
 		}
 	}
+    
+    func adjustPositions(x: Float, y: Float, xDiff: Float, yDiff: Float, center: SCNVector3) -> [Float] {
+        
+        var newXDiff = xDiff
+        var newYDiff = yDiff
+        
+        var angle = calcAngle(center, p: SCNVector3Make(x, y, 0))
+        var newAngle = calcAngle(center, p: SCNVector3Make(x + xDiff, y - yDiff, 0))
+        
+        if (angle > d2r(90) - confiningAngle && angle < d2r(90) + confiningAngle) {
+            
+            if (newAngle <= d2r(90) - confiningAngle || newAngle >= d2r(90) + confiningAngle) {
+                newXDiff = 0
+                newYDiff = 0
+            }
+            
+        } else if (angle >= d2r(90) + confiningAngle && angle < d2r(90) + 3*confiningAngle) {
+            
+            if (newAngle <= d2r(90) + confiningAngle || newAngle >= d2r(90) + 3*confiningAngle) {
+                newXDiff = 0
+                newYDiff = 0
+            }
+            
+        } else {
+            
+            if (!(newAngle >= d2r(90) + 3*confiningAngle || newAngle <= d2r(90) - confiningAngle)) {
+                newXDiff = 0
+                newYDiff = 0
+            }
+        }
+        
+        if ((x + newXDiff) < minX) {
+            newXDiff = 0
+        }
+        if ((x + newXDiff) > maxX) {
+            newXDiff = 0
+        }
+        if ((y - yDiff) < minY) {
+            newYDiff = 0
+        }
+        if ((y - yDiff) > maxY) {
+            newYDiff = 0
+        }
+        
+        return [newXDiff, newYDiff]
+        
+    }
+    
+    func calcAngle(c: SCNVector3, p: SCNVector3) -> Float {
+        
+        return (atan((p.x-c.x)/(p.y-c.y)) + d2r(360))%d2r(360)
+        
+    }
     
     override func shouldAutorotate() -> Bool {
         return true
