@@ -179,7 +179,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         ]
 		var nodes = [SCNNode]()
         for p in positions {
-            var sphere = SCNSphere(radius: 0.125)
+            var sphere = SCNSphere(radius: 0.285)
             var cornerNode = SCNNode(geometry: sphere)
             cornerNode.position = p
             cornerNode.name = "Handle"
