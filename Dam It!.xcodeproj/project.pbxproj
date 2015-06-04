@@ -30,14 +30,14 @@
 
 /* Begin PBXFileReference section */
 		58517E9B1B1FDC5D0076B839 /* States.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = States.swift; sourceTree = "<group>"; };
-		58F97A051AEEA51800AA5CF2 /* Vertex.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Vertex.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		58F97A051AEEA51800AA5CF2 /* Dam It!.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Dam It!.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		58F97A091AEEA51800AA5CF2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		58F97A0A1AEEA51800AA5CF2 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		58F97A0E1AEEA51800AA5CF2 /* GameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewController.swift; sourceTree = "<group>"; };
 		58F97A111AEEA51800AA5CF2 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		58F97A131AEEA51800AA5CF2 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		58F97A161AEEA51800AA5CF2 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/LaunchScreen.xib; sourceTree = "<group>"; };
-		58F97A1C1AEEA51800AA5CF2 /* VertexTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = VertexTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		58F97A1C1AEEA51800AA5CF2 /* Dam It!Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Dam It!Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		58F97A211AEEA51800AA5CF2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		58F97A221AEEA51800AA5CF2 /* VertexTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VertexTests.swift; sourceTree = "<group>"; };
 		58F97A2C1AEEA62400AA5CF2 /* GameKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameKit.framework; path = System/Library/Frameworks/GameKit.framework; sourceTree = SDKROOT; };
@@ -79,8 +79,8 @@
 		58F97A061AEEA51800AA5CF2 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				58F97A051AEEA51800AA5CF2 /* Vertex.app */,
-				58F97A1C1AEEA51800AA5CF2 /* VertexTests.xctest */,
+				58F97A051AEEA51800AA5CF2 /* Dam It!.app */,
+				58F97A1C1AEEA51800AA5CF2 /* Dam It!Tests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -128,9 +128,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		58F97A041AEEA51800AA5CF2 /* Vertex */ = {
+		58F97A041AEEA51800AA5CF2 /* Dam It! */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 58F97A261AEEA51800AA5CF2 /* Build configuration list for PBXNativeTarget "Vertex" */;
+			buildConfigurationList = 58F97A261AEEA51800AA5CF2 /* Build configuration list for PBXNativeTarget "Dam It!" */;
 			buildPhases = (
 				58F97A011AEEA51800AA5CF2 /* Sources */,
 				58F97A021AEEA51800AA5CF2 /* Frameworks */,
@@ -140,14 +140,14 @@
 			);
 			dependencies = (
 			);
-			name = Vertex;
+			name = "Dam It!";
 			productName = Vertex;
-			productReference = 58F97A051AEEA51800AA5CF2 /* Vertex.app */;
+			productReference = 58F97A051AEEA51800AA5CF2 /* Dam It!.app */;
 			productType = "com.apple.product-type.application";
 		};
-		58F97A1B1AEEA51800AA5CF2 /* VertexTests */ = {
+		58F97A1B1AEEA51800AA5CF2 /* Dam It!Tests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 58F97A291AEEA51800AA5CF2 /* Build configuration list for PBXNativeTarget "VertexTests" */;
+			buildConfigurationList = 58F97A291AEEA51800AA5CF2 /* Build configuration list for PBXNativeTarget "Dam It!Tests" */;
 			buildPhases = (
 				58F97A181AEEA51800AA5CF2 /* Sources */,
 				58F97A191AEEA51800AA5CF2 /* Frameworks */,
@@ -158,9 +158,9 @@
 			dependencies = (
 				58F97A1E1AEEA51800AA5CF2 /* PBXTargetDependency */,
 			);
-			name = VertexTests;
+			name = "Dam It!Tests";
 			productName = VertexTests;
-			productReference = 58F97A1C1AEEA51800AA5CF2 /* VertexTests.xctest */;
+			productReference = 58F97A1C1AEEA51800AA5CF2 /* Dam It!Tests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
@@ -190,7 +190,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 58F97A001AEEA51700AA5CF2 /* Build configuration list for PBXProject "Vertex" */;
+			buildConfigurationList = 58F97A001AEEA51700AA5CF2 /* Build configuration list for PBXProject "Dam It!" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -203,8 +203,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				58F97A041AEEA51800AA5CF2 /* Vertex */,
-				58F97A1B1AEEA51800AA5CF2 /* VertexTests */,
+				58F97A041AEEA51800AA5CF2 /* Dam It! */,
+				58F97A1B1AEEA51800AA5CF2 /* Dam It!Tests */,
 			);
 		};
 /* End PBXProject section */
@@ -253,7 +253,7 @@
 /* Begin PBXTargetDependency section */
 		58F97A1E1AEEA51800AA5CF2 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 58F97A041AEEA51800AA5CF2 /* Vertex */;
+			target = 58F97A041AEEA51800AA5CF2 /* Dam It! */;
 			targetProxy = 58F97A1D1AEEA51800AA5CF2 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -368,7 +368,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				INFOPLIST_FILE = Vertex/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "Dam It!";
 				PROVISIONING_PROFILE = "";
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -383,7 +383,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				INFOPLIST_FILE = Vertex/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "Dam It!";
 				PROVISIONING_PROFILE = "";
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -403,7 +403,7 @@
 				);
 				INFOPLIST_FILE = VertexTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "Dam It!Tests";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Vertex.app/Vertex";
 			};
 			name = Debug;
@@ -418,7 +418,7 @@
 				);
 				INFOPLIST_FILE = VertexTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "Dam It!Tests";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Vertex.app/Vertex";
 			};
 			name = Release;
@@ -426,7 +426,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		58F97A001AEEA51700AA5CF2 /* Build configuration list for PBXProject "Vertex" */ = {
+		58F97A001AEEA51700AA5CF2 /* Build configuration list for PBXProject "Dam It!" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				58F97A241AEEA51800AA5CF2 /* Debug */,
@@ -435,7 +435,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		58F97A261AEEA51800AA5CF2 /* Build configuration list for PBXNativeTarget "Vertex" */ = {
+		58F97A261AEEA51800AA5CF2 /* Build configuration list for PBXNativeTarget "Dam It!" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				58F97A271AEEA51800AA5CF2 /* Debug */,
@@ -444,7 +444,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		58F97A291AEEA51800AA5CF2 /* Build configuration list for PBXNativeTarget "VertexTests" */ = {
+		58F97A291AEEA51800AA5CF2 /* Build configuration list for PBXNativeTarget "Dam It!Tests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				58F97A2A1AEEA51800AA5CF2 /* Debug */,
