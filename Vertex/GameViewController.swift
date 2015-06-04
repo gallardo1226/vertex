@@ -733,26 +733,27 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
     
     func isHoleCovered() -> Bool {
         
-        var bools = [false, false, false]
-        var summaryBool = true
-        
-        for ii in 0...(numVertices-1) {
-            var vertex = scene.rootNode.childNodeWithName("Player", recursively: true).childNodes[ii].position
-            
-            for jj in 0...(numVertices-1) {
-                if (sqrt(pow(vertex.x - holePositions[jj].x, 2) + pow(vertex.y - holePositions[jj].y, 2)) <= 0.05) {
-                    bools[jj] = true
-                }
-            }
-        }
-        
-        for ii in 0...(numVertices-1) {
-            if (!bools[ii]) {
-                summaryBool = false
-            }
-        }
-        
-        return summaryBool
+//        var bools = [false, false, false]
+//        var summaryBool = true
+//        
+//        for ii in 0...(numVertices-1) {
+//            var vertex = scene.rootNode.childNodeWithName("Player", recursively: true).childNodes[ii].position
+//            
+//            for jj in 0...(numVertices-1) {
+//                if (sqrt(pow(vertex.x - holePositions[jj].x, 2) + pow(vertex.y - holePositions[jj].y, 2)) <= 0.05) {
+//                    bools[jj] = true
+//                }
+//            }
+//        }
+//        
+//        for ii in 0...(numVertices-1) {
+//            if (!bools[ii]) {
+//                summaryBool = false
+//            }
+//        }
+//        
+//        return summaryBool
+		return false
     }
 
 	func configureGestures(view: SCNView) {
@@ -789,13 +790,6 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
 				if let point = dragPoint as CGPoint! {
 					let xDiff = Float(p.x - point.x) / 38.5
 					let yDiff = Float(p.y - point.y) / 38.5
-                    
-                    var newX = node.position.x
-                    var newY = node.position.y
-                    var newZ = node.position.z
-                    
-                    
-                    
 					node.position = SCNVector3(
 						x: node.position.x + xDiff,
 						y: node.position.y - yDiff,
