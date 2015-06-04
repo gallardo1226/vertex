@@ -834,12 +834,12 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         
         if (angle > d2r(90) - confiningAngle && angle < d2r(90) + confiningAngle) {
             
-            if (newAngle <= d2r(90) - confiningAngle || newAngle >= d2r(90) + confiningAngle) {
+            if (newAngle <= d2r(90) - confiningAngle || newAngle >= d2r(90) + confiningAngle || (y - yDiff) <= center.y) {
                 newXDiff = 0
                 newYDiff = 0
             }
             
-        } else if (angle >= d2r(90) + confiningAngle && angle < d2r(90) + 3*confiningAngle) {
+        } else if (angle >= d2r(90) + confiningAngle && angle < d2r(90) + 3*confiningAngle || (x + xDiff) >= center.x) {
             
             if (newAngle <= d2r(90) + confiningAngle || newAngle >= d2r(90) + 3*confiningAngle) {
                 newXDiff = 0
@@ -848,7 +848,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
             
         } else {
             
-            if (!(newAngle >= d2r(90) + 3*confiningAngle || newAngle <= d2r(90) - confiningAngle)) {
+            if (!(newAngle >= d2r(90) + 3*confiningAngle || newAngle <= d2r(90) - confiningAngle || (x + xDiff) <= center.x)) {
                 newXDiff = 0
                 newYDiff = 0
             }
