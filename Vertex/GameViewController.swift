@@ -40,7 +40,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
     var fillPositions = [SCNVector3]()
     var firstFill = true
 
-	var selectedNode:SCNNode? = nil
+	var selectedNodes = [SCNNode]()
 	var dragPoint:CGPoint? = nil
     
     var waterNode = SCNNode()
@@ -228,7 +228,9 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
 		let shape = SCNGeometry(sources: [vertexSource], elements: [element])
 		shape.firstMaterial!.diffuse.contents = UIColor.greenColor()
 		shape.firstMaterial!.doubleSided = true
-		return SCNNode(geometry: shape)
+		let node = SCNNode(geometry: shape)
+		node.name = "Shape"
+		return node
 	}
 
     func generateShape(numVertices: Int) -> Double {
@@ -777,8 +779,15 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
 				if hitResults.count > 0 {
 					let result: AnyObject! = hitResults[0]
 					if result.node.name == "Handle" {
-						selectedNode = result.node
-						selectedNode?.geometry?.firstMaterial?.diffuse.contents = UIColor.redColor()
+						result.node.geometry?.firstMaterial?.diffuse.contents = UIColor.redColor()
+						selectedNodes.append(result.node)
+						dragPoint = p
+					} else if result.node.name == "Shape" {
+						let children = scene.rootNode.childNodeWithName("Player", recursively: false)?.childNodes as! [SCNNode]
+						for i in 0 ... children.count - 2 {
+							children[i].geometry?.firstMaterial?.diffuse.contents = UIColor.redColor()
+							selectedNodes.append(children[i])
+						}
 						dragPoint = p
 					}
 				}
@@ -786,34 +795,47 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
 		}
 		if recognizer.state == States.changed {
 			let p = recognizer.locationInView(scnView)
-			if let node = selectedNode as SCNNode! {
-				if let point = dragPoint as CGPoint! {
-					let xDiff = Float(p.x - point.x) / 38.5
-					let yDiff = Float(p.y - point.y) / 38.5
+			if let point = dragPoint as CGPoint! {
+				let xDiff = Float(p.x - point.x) / 38.5
+				let yDiff = Float(p.y - point.y) / 38.5
+				if selectedNodes.count == 1 {
+					let node = selectedNodes[0]
 					node.position = SCNVector3(
 						x: node.position.x + xDiff,
 						y: node.position.y - yDiff,
 						z: node.position.z
 					)
-					let children = scene.rootNode.childNodeWithName("Player", recursively: false)?.childNodes as! [SCNNode]
-					var handles = [SCNNode]()
-					for i in 0 ... children.count - 2 {
+				}
+
+				if selectedNodes.count > 1 {
+					for node in selectedNodes {
+						node.position = SCNVector3(
+							x: node.position.x + xDiff,
+							y: node.position.y - yDiff,
+							z: node.position.z
+						)
+					}
+				}
+				let children = scene.rootNode.childNodeWithName("Player", recursively: false)?.childNodes as! [SCNNode]
+				var handles = [SCNNode]()
+				for i in 0 ... children.count - 2 {
 						handles.append(children[i])
 					}
-					var positions = [SCNVector3]()
-					for handle in handles {
+				var positions = [SCNVector3]()
+				for handle in handles {
 						positions.append(handle.position)
 					}
-					if let player = scene.rootNode.childNodeWithName("Player", recursively: true) as SCNNode! {
-						player.replaceChildNode(children.last!, with: generateShapeFromNodes(handles, positions: positions))
+				if let player = scene.rootNode.childNodeWithName("Player", recursively: true) as SCNNode! {
+					player.replaceChildNode(children.last!, with: generateShapeFromNodes(handles, positions: positions))
 					}
-					dragPoint = p
-				}
+				dragPoint = p
 			}
 		}
 		if recognizer.state == States.ended {
-			selectedNode?.geometry?.firstMaterial?.diffuse.contents = UIColor.whiteColor()
-			selectedNode = nil
+			for node in selectedNodes {
+				node.geometry?.firstMaterial?.diffuse.contents = UIColor.whiteColor()
+			}
+			selectedNodes = []
 			dragPoint = nil
 		}
 	}
@@ -833,10 +855,10 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
             return Int(UIInterfaceOrientationMask.All.rawValue)
         }
     }
-    
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Release any cached data, images, etc that aren't in use.
-    }
+
+	override func didReceiveMemoryWarning() {
+		super.didReceiveMemoryWarning()
+		// Release any cached data, images, etc that aren't in use.
+	}
 
 }
