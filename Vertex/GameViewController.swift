@@ -135,6 +135,15 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         
         tempCounter++
         
+        var vertexVectors = [SCNVector3]()
+        var vertexNodes = scene.rootNode.childNodeWithName("Player", recursively: false)?.childNodes as! [SCNNode]
+        
+        for ii in 0...(numVertices-1) {
+            vertexVectors.append(vertexNodes[ii].position)
+        }
+        
+        shapeCenter = SCNVector3Make((vertexVectors[0].x+vertexVectors[1].x+vertexVectors[2].x)/3, (vertexVectors[0].y+vertexVectors[1].y+vertexVectors[2].y)/3, 0)
+        
         // Increment the cycle count
         cycleCount++
             
@@ -785,11 +794,11 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
                     var newX = node.position.x + xDiff
                     var newY = node.position.y - yDiff
                     
-                    //var newDiffs = adjustPositions(node.position.x, y: node.position.y, xDiff: xDiff, yDiff: yDiff, center: center)
+                    var newDiffs = adjustPositions(node.position.x, y: node.position.y, xDiff: xDiff, yDiff: yDiff, center: shapeCenter)
                     
 					node.position = SCNVector3(
-						x: node.position.x + xDiff,
-						y: node.position.y - yDiff,
+						x: node.position.x + newDiffs[0],
+						y: node.position.y - newDiffs[1],
 						z: node.position.z
 					)
 					let children = scene.rootNode.childNodeWithName("Player", recursively: false)?.childNodes as! [SCNNode]
