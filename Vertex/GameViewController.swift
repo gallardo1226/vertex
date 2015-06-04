@@ -68,9 +68,6 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         (self.view as! SCNView).delegate = self
         (self.view as! SCNView).playing = true
         
-//        addPlayerSquare(scene)
-        addPlayerTriangle(scene)
-        
         // create and add a camera to the scene
         let cameraNode = SCNNode()
         cameraNode.camera = SCNCamera()
@@ -94,16 +91,19 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         // set the scene to the view
         scnView.scene = scene
         
-//        scnView.allowsCameraControl = true
-//        scnView.showsStatistics = true
-        
         // configure the view
         scnView.backgroundColor = UIColor.lightGrayColor()
         
-        // add a tap gesture recognizer
+        // configure gestures
 		configureGestures(scnView)
+
+		// create player node
+		let player = SCNNode()
+		player.name = "Player"
+		scene.rootNode.addChildNode(player)
+		player.addChildNode(addPlayerTriangle())
     }
-    
+
     func renderer(aRenderer: SCNSceneRenderer, updateAtTime time: NSTimeInterval) {
         
         // If hole has been covered, generate new hole
@@ -143,8 +143,8 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
             //println(fillLevel)
         }
         
-        drawFillLine(fillLevel)
-        
+//        drawFillLine(fillLevel)
+
         if (fillLevel > maxFill) {
             // Game Over
         }
@@ -157,38 +157,24 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         
     }
 
-    func addPlayerTriangle(scene: SCNScene) {
+    func addPlayerTriangle() -> SCNNode {
         let positions = [
             SCNVector3Make(-1,-sqrt(3) / 2, 0),
             SCNVector3Make( 1,-sqrt(3) / 2, 0),
             SCNVector3Make( 0, sqrt(3) / 2, 0)
         ]
-        let normals = [
-            SCNVector3Make( -0.5, 0, 0),
-            SCNVector3Make( 0.5, 0, 0),
-            SCNVector3Make(-sqrt(3) / 2, 0, 0)
-        ]
-        var indices:[CInt] = [
-            0, 1, 2
-        ]
-        let indexData = NSData(bytes:&indices, length:sizeof(CInt) * indices.count)
-        var corners:[CInt] = [0, 1, 2]
-        let cornerData = NSData(bytes:&corners, length:sizeof(CInt) * corners.count)
-        let element = SCNGeometryElement(data: indexData, primitiveType: SCNGeometryPrimitiveType.Triangles, primitiveCount: 1, bytesPerIndex: sizeof(CInt))
-        let vertexSource = SCNGeometrySource(vertices: positions, count: 3)
-        let normalSource = SCNGeometrySource(normals:normals,
-                count: 3)
-        let triangle = SCNGeometry(sources: [vertexSource], elements: [element])
-        triangle.firstMaterial!.diffuse.contents = UIColor.greenColor()
-        let triangleNode = SCNNode(geometry: triangle)
+		var nodes = [SCNNode]()
         for p in positions {
             var sphere = SCNSphere(radius: 0.125)
             var cornerNode = SCNNode(geometry: sphere)
             cornerNode.position = p
-            cornerNode.name = "Corner"
-            triangleNode.addChildNode(cornerNode)
+            cornerNode.name = "Handle"
+			nodes.append(cornerNode)
+			if let player = scene.rootNode.childNodeWithName("Player", recursively: false) as SCNNode! {
+				player.addChildNode(cornerNode)
+			}
         }
-        scene.rootNode.addChildNode(triangleNode)
+		return generateShapeFromNodes(nodes, positions: positions)
     }
     
     func addPlayerSquare(scene: SCNScene) {
@@ -226,8 +212,23 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         return Float(M_PI)/180*angle
     }
     
-	func generateShapeFromNodes(vertices: [SCNNode]) {
-
+	func generateShapeFromNodes(vertices: [SCNNode], positions: [SCNVector3]) -> SCNNode {
+		var indices = [CInt]()
+		for i in 1 ... vertices.count - 2 {
+			indices += [CInt(0), CInt(i), CInt(i + 1)]
+		}
+		var corners = [CInt]()
+		for i in 0 ... vertices.count {
+			corners.append(CInt(i))
+		}
+		let indexData = NSData(bytes:&indices, length:sizeof(CInt) * indices.count)
+		let cornerData = NSData(bytes:&corners, length:sizeof(CInt) * corners.count)
+		let element = SCNGeometryElement(data: indexData, primitiveType: SCNGeometryPrimitiveType.Triangles, primitiveCount: indices.count / 3, bytesPerIndex: sizeof(CInt))
+		let vertexSource = SCNGeometrySource(vertices: positions, count: corners.count)
+		let shape = SCNGeometry(sources: [vertexSource], elements: [element])
+		shape.firstMaterial!.diffuse.contents = UIColor.greenColor()
+		shape.firstMaterial!.doubleSided = true
+		return SCNNode(geometry: shape)
 	}
 
     func generateShape(numVertices: Int) -> Double {
@@ -725,8 +726,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         return points
         
     }
-    
-    
+
     func fillSpace(size: Double) -> Double {
         return size/300
     }
@@ -775,7 +775,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
 			if let hitResults = scnView.hitTest(p, options: nil) {
 				if hitResults.count > 0 {
 					let result: AnyObject! = hitResults[0]
-					if result.node.name == "Corner" {
+					if result.node.name == "Handle" {
 						selectedNode = result.node
 						selectedNode?.geometry?.firstMaterial?.diffuse.contents = UIColor.redColor()
 						dragPoint = p
@@ -801,6 +801,18 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
 						y: node.position.y - yDiff,
 						z: node.position.z
 					)
+					let children = scene.rootNode.childNodeWithName("Player", recursively: false)?.childNodes as! [SCNNode]
+					var handles = [SCNNode]()
+					for i in 0 ... children.count - 2 {
+						handles.append(children[i])
+					}
+					var positions = [SCNVector3]()
+					for handle in handles {
+						positions.append(handle.position)
+					}
+					if let player = scene.rootNode.childNodeWithName("Player", recursively: true) as SCNNode! {
+						player.replaceChildNode(children.last!, with: generateShapeFromNodes(handles, positions: positions))
+					}
 					dragPoint = p
 				}
 			}
