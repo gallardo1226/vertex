@@ -795,19 +795,14 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
 		}
 		if recognizer.state == States.changed {
 			let p = recognizer.locationInView(scnView)
-			if let node = selectedNode as SCNNode! {
-				if let point = dragPoint as CGPoint! {
-					let xDiff = Float(p.x - point.x) / 38.5
-					let yDiff = Float(p.y - point.y) / 38.5
-                    
-                    var newX = node.position.x + xDiff
-                    var newY = node.position.y - yDiff
-                    
-                    var newDiffs = adjustPositions(node.position.x, y: node.position.y, xDiff: xDiff, yDiff: yDiff, center: shapeCenter)
-                    
+			if let point = dragPoint as CGPoint! {
+				let xDiff = Float(p.x - point.x) / 38.5
+				let yDiff = Float(p.y - point.y) / 38.5
+				if selectedNodes.count == 1 {
+					let node = selectedNodes[0]
 					node.position = SCNVector3(
-						x: node.position.x + newDiffs[0],
-						y: node.position.y - newDiffs[1],
+						x: node.position.x + xDiff,
+						y: node.position.y - yDiff,
 						z: node.position.z
 					)
 				}
