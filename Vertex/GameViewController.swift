@@ -41,6 +41,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
     var firstFill = true
 
 	var selectedNodes = [SCNNode]()
+	let player = SCNNode()
 	var dragPoint:CGPoint? = nil
     
     var waterNode = SCNNode()
@@ -103,17 +104,16 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
 		configureGestures(scnView)
 
 		// create player node
-		let player = SCNNode()
 		player.name = "Player"
 		scene.rootNode.addChildNode(player)
-		player.addChildNode(addPlayerTriangle())
     }
 
     func renderer(aRenderer: SCNSceneRenderer, updateAtTime time: NSTimeInterval) {
         
         // If hole has been covered, generate new hole
         if (!shapeUncovered) {
-            sizeOfHole = generateShape(numVertices)
+			sizeOfHole = generateShape(numVertices)
+			player.addChildNode(addPlayerTriangle())
             shapeUncovered = true
         } else {
             if (isHoleCovered()) {
@@ -136,7 +136,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         tempCounter++
         
         var vertexVectors = [SCNVector3]()
-        var vertexNodes = scene.rootNode.childNodeWithName("Player", recursively: false)?.childNodes as! [SCNNode]
+        var vertexNodes = player.childNodes as! [SCNNode]
         
         for ii in 0...(numVertices-1) {
             vertexVectors.append(vertexNodes[ii].position)
@@ -157,7 +157,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
             //println(fillLevel)
         }
         
-//        drawFillLine(fillLevel)
+        drawFillLine(fillLevel)
 
         if (fillLevel > maxFill) {
             // Game Over
@@ -184,9 +184,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
             cornerNode.position = p
             cornerNode.name = "Handle"
 			nodes.append(cornerNode)
-			if let player = scene.rootNode.childNodeWithName("Player", recursively: false) as SCNNode! {
-				player.addChildNode(cornerNode)
-			}
+			player.addChildNode(cornerNode)
         }
 		return generateShapeFromNodes(nodes, positions: positions)
     }
@@ -739,7 +737,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         var summaryBool = true
         
         for ii in 0...(numVertices-1) {
-            var vertexArray = scene.rootNode.childNodeWithName("Player", recursively: false)?.childNodes as! [SCNNode]
+            var vertexArray = player.childNodes as! [SCNNode]
             var vertex = vertexArray[ii].position
             
             for jj in 0...(numVertices-1) {
@@ -783,7 +781,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
 						selectedNodes.append(result.node)
 						dragPoint = p
 					} else if result.node.name == "Shape" {
-						let children = scene.rootNode.childNodeWithName("Player", recursively: false)?.childNodes as! [SCNNode]
+						let children = player.childNodes as! [SCNNode]
 						for i in 0 ... children.count - 2 {
 							children[i].geometry?.firstMaterial?.diffuse.contents = UIColor.redColor()
 							selectedNodes.append(children[i])
@@ -816,18 +814,16 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
 						)
 					}
 				}
-				let children = scene.rootNode.childNodeWithName("Player", recursively: false)?.childNodes as! [SCNNode]
+				let children = player.childNodes as! [SCNNode]
 				var handles = [SCNNode]()
 				for i in 0 ... children.count - 2 {
 						handles.append(children[i])
 					}
 				var positions = [SCNVector3]()
 				for handle in handles {
-						positions.append(handle.position)
-					}
-				if let player = scene.rootNode.childNodeWithName("Player", recursively: true) as SCNNode! {
-					player.replaceChildNode(children.last!, with: generateShapeFromNodes(handles, positions: positions))
-					}
+					positions.append(handle.position)
+				}
+				player.replaceChildNode(children.last!, with: generateShapeFromNodes(handles, positions: positions))
 				dragPoint = p
 			}
 		}
