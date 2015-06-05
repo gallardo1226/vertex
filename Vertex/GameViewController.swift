@@ -134,17 +134,6 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
             }
         }
         
-        
-        /*
-        if (tempCounter >= 100) {
-            sizeOfHole = generateShape(numVertices)
-            score += 1
-            scoreLabel.text = String(score)
-            tempCounter = 0
-        }
-        */
-        //drawSpillLine()
-        
         tempCounter++
         
         var vertexVectors = [SCNVector3]()
@@ -155,10 +144,10 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         }
         
         var linePoints = [SCNVector3]()
-        linePoints.append(SCNVector3Make(shapeCenter.x+100*cos(d2r(30)), shapeCenter.y+100*sin(d2r(30)), 0))
-        linePoints.append(SCNVector3Make(shapeCenter.x-100*cos(d2r(30)), shapeCenter.y+100*sin(d2r(30)), 0))
-        linePoints.append(SCNVector3Make(shapeCenter.x, shapeCenter.y-100, 0))
-        
+        linePoints.append(SCNVector3Make(shapeCenter.x+100*cos(d2r(30)), shapeCenter.y+100*sin(d2r(30)), 0.01))
+        linePoints.append(SCNVector3Make(shapeCenter.x-100*cos(d2r(30)), shapeCenter.y+100*sin(d2r(30)), 0.01))
+        linePoints.append(SCNVector3Make(shapeCenter.x, shapeCenter.y-100, 0.01))
+
         var indices = [
             0,2,1,
             1,2,3
@@ -403,7 +392,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         holePositions = [SCNVector3]()
         
         for jj in 0...(numVertices-1) {
-            holePositions.append(SCNVector3Make(Float(xs[jj]), Float(ys[jj]), 0))
+            holePositions.append(SCNVector3Make(Float(xs[jj]), Float(ys[jj]), -0.01))
         }
         
         //holePositions = sortPoints(holePositions, center: SCNVector3Make(centerX, centerY, 0))
@@ -423,7 +412,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         }
         
         var indexData = NSData(bytes:&indices, length:sizeof(CInt) * indices.count)
-        var element = SCNGeometryElement(data: indexData, primitiveType: SCNGeometryPrimitiveType.Triangles, primitiveCount: numVertices-2, bytesPerIndex: sizeof(CInt))
+        var element = SCNGeometryElement(data: indexData, primitiveType: SCNGeometryPrimitiveType.Triangles, primitiveCount: numVertices - 2, bytesPerIndex: sizeof(CInt))
         var vertexSource = SCNGeometrySource(vertices: holePositions, count: numVertices)
         
         var hole = SCNGeometry(sources: [vertexSource], elements: [element])
