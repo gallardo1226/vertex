@@ -150,7 +150,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         drawFillLine(fillLevel)
 
         if (fillLevel > maxFill) {
-            // Game Over
+            performSegueWithIdentifier("GameOver", sender: nil)
         }
         
         if (score >= winScore) {
@@ -832,5 +832,13 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
 		super.didReceiveMemoryWarning()
 		// Release any cached data, images, etc that aren't in use.
 	}
+    
+    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject!) {
+        if (segue.identifier == "GameOver") {
+            let vc:EndViewController = segue.destinationViewController as! EndViewController
+            vc.scoreLabel.text = String(totalScore)
+            vc.levelLabel.text = String(level)
+        }
+    }
 
 }

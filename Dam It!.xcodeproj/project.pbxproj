@@ -19,6 +19,7 @@
 		58F97A231AEEA51800AA5CF2 /* VertexTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58F97A221AEEA51800AA5CF2 /* VertexTests.swift */; };
 		58F97A2D1AEEA62400AA5CF2 /* GameKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 58F97A2C1AEEA62400AA5CF2 /* GameKit.framework */; };
 		58F97A2F1AEEA64000AA5CF2 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 58F97A2E1AEEA64000AA5CF2 /* AudioToolbox.framework */; };
+		EF1D49DE1B224C12006683E7 /* EndViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF1D49DD1B224C12006683E7 /* EndViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -49,6 +50,7 @@
 		58F97A2C1AEEA62400AA5CF2 /* GameKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameKit.framework; path = System/Library/Frameworks/GameKit.framework; sourceTree = SDKROOT; };
 		58F97A2E1AEEA64000AA5CF2 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		58F97A301AEEA64000AA5CF2 /* Vertex.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Vertex.entitlements; sourceTree = "<group>"; };
+		EF1D49DD1B224C12006683E7 /* EndViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EndViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -100,6 +102,7 @@
 				58517E9B1B1FDC5D0076B839 /* States.swift */,
 				585A81A41B21EA0900A11676 /* HelperMethods.swift */,
 				58F97A101AEEA51800AA5CF2 /* Main.storyboard */,
+				EF1D49DD1B224C12006683E7 /* EndViewController.swift */,
 				585A81A61B221CC700A11676 /* UIPageContentViewController.swift */,
 				585A81A81B221F4C00A11676 /* PageViewController.swift */,
 				58F97A131AEEA51800AA5CF2 /* Images.xcassets */,
@@ -246,6 +249,7 @@
 				585A81A71B221CC700A11676 /* UIPageContentViewController.swift in Sources */,
 				58517E9C1B1FDC5D0076B839 /* States.swift in Sources */,
 				58F97A0F1AEEA51800AA5CF2 /* GameViewController.swift in Sources */,
+				EF1D49DE1B224C12006683E7 /* EndViewController.swift in Sources */,
 				585A81A91B221F4C00A11676 /* PageViewController.swift in Sources */,
 				585A81A51B21EA0900A11676 /* HelperMethods.swift in Sources */,
 				58F97A0B1AEEA51800AA5CF2 /* AppDelegate.swift in Sources */,
@@ -416,7 +420,7 @@
 				INFOPLIST_FILE = VertexTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_NAME = "Dam It!Tests";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Vertex.app/Vertex";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Dam It!.app/Dam It!";
 			};
 			name = Debug;
 		};
@@ -431,7 +435,7 @@
 				INFOPLIST_FILE = VertexTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_NAME = "Dam It!Tests";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Vertex.app/Vertex";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Dam It!.app/Dam It!";
 			};
 			name = Release;
 		};
