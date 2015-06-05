@@ -121,6 +121,10 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         // If hole has been covered, generate new hole
         if (!shapeUncovered) {
 			sizeOfHole = generateShape(numVertices)
+			var playerNodes = player.childNodes as! [SCNNode]
+			for node in playerNodes {
+				node.removeFromParentNode()
+			}
 			player.addChildNode(addPlayerTriangle())
             shapeUncovered = true
         } else {
@@ -893,7 +897,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
 			}
 			selectedNodes = []
 			dragPoint = nil
-            let allVerts = scene.rootNode.childNodeWithName("Player", recursively: false)?.childNodes as! [SCNNode]
+            let allVerts = player.childNodes as! [SCNNode]
             var vertexVectors = [SCNVector3]()
             for v in allVerts {
                 vertexVectors.append(v.position)
