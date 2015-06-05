@@ -26,8 +26,12 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
     var sizeOfHole = 0.0
     var shapeUncovered = false
     var x: Float = 0.0
+    
     var score = 0
     var winScore = 5
+    var totalScore = 0
+    var level = 1
+    var fillParam: Float = 1000
     
     var tempCounter = 1000
     
@@ -60,6 +64,9 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
     var yLimit = 0.5
     
     var shapeCenter = SCNVector3()
+    var linesNode = [SCNNode]()
+    var LN = SCNNode()
+
     
     var scene = SCNScene()
     
@@ -110,6 +117,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
 
     func renderer(aRenderer: SCNSceneRenderer, updateAtTime time: NSTimeInterval) {
         
+        confiningAngle = d2r((180)*Float(numVertices-2)/Float(numVertices))
         // If hole has been covered, generate new hole
         if (!shapeUncovered) {
 			sizeOfHole = generateShape(numVertices)
@@ -121,8 +129,8 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
                 score += 1
             }
         }
-
-        confiningAngle = d2r((180)*Float(numVertices-2)/Float(numVertices))
+        
+        
         /*
         if (tempCounter >= 100) {
             sizeOfHole = generateShape(numVertices)
@@ -142,7 +150,42 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
             vertexVectors.append(vertexNodes[ii].position)
         }
         
-        shapeCenter = SCNVector3Make((vertexVectors[0].x+vertexVectors[1].x+vertexVectors[2].x)/3, (vertexVectors[0].y+vertexVectors[1].y+vertexVectors[2].y)/3, 0)
+        var linePoints = [SCNVector3]()
+        linePoints.append(SCNVector3Make(shapeCenter.x+100*cos(d2r(30)), shapeCenter.y+100*sin(d2r(30)), 0))
+        linePoints.append(SCNVector3Make(shapeCenter.x-100*cos(d2r(30)), shapeCenter.y+100*sin(d2r(30)), 0))
+        linePoints.append(SCNVector3Make(shapeCenter.x, shapeCenter.y-100, 0))
+        
+        var indices = [
+            0,2,1,
+            1,2,3
+        ]
+        
+        linesNode = [SCNNode]()
+        var tempNode = SCNNode()
+        
+        for p in linePoints {
+            var positions = [
+                shapeCenter,
+                p,
+                SCNVector3Make(shapeCenter.x+0.1, shapeCenter.y+0.1, 0),
+                SCNVector3Make(p.x+0.1, p.y+0.1, 0)
+            ]
+            
+            var geo = SCNGeometrySource(vertices: positions, count: 4)
+            let indexData = NSData(bytes:&indices, length:sizeof(CInt) * indices.count)
+            let element = SCNGeometryElement(data:indexData, primitiveType:SCNGeometryPrimitiveType.Triangles, primitiveCount:2, bytesPerIndex:sizeof(CInt));
+            let line = SCNGeometry(sources:[geo], elements:[element]);
+            line.firstMaterial!.doubleSided = true
+            line.firstMaterial!.diffuse.contents = UIColor.blackColor()
+            let node = SCNNode(geometry: line)
+            
+            tempNode.addChildNode(node)
+        }
+        
+        scene.rootNode.replaceChildNode(LN, with: tempNode)
+        LN = tempNode
+        
+        
         
         // Increment the cycle count
         cycleCount++
@@ -164,10 +207,14 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         }
         
         if (score >= winScore) {
-            numVertices += 1
             fillLevel = 0.0
             score = 0
+            totalScore += score*level
+            level++
+            fillParam *= 0.9
         }
+        
+        //println(scene.rootNode.childNodes)
         
     }
 
@@ -178,7 +225,9 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
             SCNVector3Make( 0, sqrt(3) / 2, 0)
         ]
 		var nodes = [SCNNode]()
+        var vertexVectors = [SCNVector3]()
         for p in positions {
+            vertexVectors.append(p)
             var sphere = SCNSphere(radius: 0.285)
             var cornerNode = SCNNode(geometry: sphere)
             cornerNode.position = p
@@ -186,6 +235,9 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
 			nodes.append(cornerNode)
 			player.addChildNode(cornerNode)
         }
+        
+        shapeCenter = SCNVector3Make((vertexVectors[0].x+vertexVectors[1].x+vertexVectors[2].x)/3, (vertexVectors[0].y+vertexVectors[1].y+vertexVectors[2].y)/3, 0)
+        
 		return generateShapeFromNodes(nodes, positions: positions)
     }
     
@@ -285,15 +337,11 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
                 if ((centerX-minX)/cos(currentAngle) < (maxY - centerY)/sin(currentAngle)) {
                     tempX = minX
                     tempY = -(centerX-minX)*tan(currentAngle) + centerY
-                    println("2, Y")
-                    println(currentAngle)
-                    println(tan(currentAngle))
+                    
                 } else {
                     tempX = centerX + (maxY-centerY)/tan(currentAngle)
                     tempY = maxY
-                    println("2, X")
-                    println(currentAngle)
-                    println(tan(currentAngle))
+                    
                 }
                 
             } else if ((currentAngle+d2r(360))%d2r(360) > d2r(180) && (currentAngle+d2r(360))%d2r(360) <= d2r(270)) {
@@ -301,16 +349,11 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
                 if ((centerX-minX)/cos(currentAngle) < (centerY-minY)/sin(currentAngle)) {
                     tempX = minX
                     tempY = centerY - (centerX-minX)*tan(currentAngle)
-                    println("3, Y")
-                    println(currentAngle)
-                    println(tan(currentAngle))
+                    
                 } else {
                     tempX = centerX - (centerY-minY)/tan(currentAngle)
                     tempY = minY
-                    println("3, X")
-                    println(centerY-minY)
-                    println(currentAngle)
-                    println(tan(currentAngle))
+                    
                 }
                 
             } else {
@@ -318,16 +361,11 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
                 if ((maxX-centerX)/cos(currentAngle) < (centerY-minY)/sin(currentAngle)) {
                     tempX = maxX
                     tempY = centerY + (maxX-centerX)*tan(currentAngle)
-                    println("4, Y")
-                    println(currentAngle)
-                    println(tan(currentAngle))
+                    
                 } else {
                     tempX = -(centerY-minY)/tan(currentAngle) + centerX
                     tempY = minY
-                    println("4, X")
-                    println((centerY-minY)/tan(currentAngle))
-                    //println(currentAngle)
-                    //println(tan(currentAngle))
+                    
                 }
                 
             }
@@ -401,6 +439,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         
         if (firstHole) {
             scene.rootNode.addChildNode(holeNode)
+            scene.rootNode.addChildNode(LN)
             firstHole = false
         }
         
@@ -470,6 +509,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
     func calcArea(xVals: [Float], yVals: [Float]) -> Double {
         var sum = 0.0
 
+        /*
         for ii in 0...(numVertices-2) {
             sum += Double(xVals[ii]*yVals[ii+1] - yVals[ii]*xVals[ii+1])
         }
@@ -477,7 +517,10 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         sum += Double(xVals[numVertices-1]*yVals[0] - yVals[numVertices-1]*xVals[0])
         
         return Double(abs(sum))
-        
+        */
+        var tempSum: Float = (xVals[0]*yVals[1] + xVals[1]*yVals[2] + xVals[2]*yVals[0] - xVals[0]*yVals[2] - xVals[2]*yVals[1] - xVals[1]*yVals[0])
+        sum = 0.5*abs(Double(tempSum))
+        return sum
     }
     
     func sortPoints(hp: [SCNVector3], center: SCNVector3) -> [SCNVector3] {
@@ -728,7 +771,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
     }
 
     func fillSpace(size: Double) -> Double {
-        return size/300
+        return size/1000
     }
     
     func isHoleCovered() -> Bool {
@@ -741,18 +784,20 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
             var vertex = vertexArray[ii].position
             
             for jj in 0...(numVertices-1) {
-                if (sqrt(pow(vertex.x - holePositions[jj].x, 2) + pow(vertex.y - holePositions[jj].y, 2)) <= 0.05) {
+                if (sqrt(pow(vertex.x - holePositions[jj].x, 2) + pow(vertex.y - holePositions[jj].y, 2)) <= 0.25) {
                     bools[jj] = true
                 }
             }
         }
-        
+        var num = 0
         for ii in 0...(numVertices-1) {
             if (!bools[ii]) {
                 summaryBool = false
+            } else {
+                num++
             }
         }
-        
+        println(num)
         return summaryBool
     }
 
@@ -798,18 +843,33 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
 				let yDiff = Float(p.y - point.y) / 38.5
 				if selectedNodes.count == 1 {
 					let node = selectedNodes[0]
-					node.position = SCNVector3(
-						x: node.position.x + xDiff,
-						y: node.position.y - yDiff,
+					
+                    let newDiffs = adjustPositions(node.position.x, y: node.position.y, xDiff: xDiff, yDiff: yDiff, center: shapeCenter)
+                    
+                    node.position = SCNVector3(
+						x: node.position.x + newDiffs[0],
+						y: node.position.y - newDiffs[1],
 						z: node.position.z
 					)
 				}
 
 				if selectedNodes.count > 1 {
-					for node in selectedNodes {
-						node.position = SCNVector3(
-							x: node.position.x + xDiff,
-							y: node.position.y - yDiff,
+					
+                    var xD = xDiff
+                    var yD = yDiff
+                    
+                    for node in selectedNodes {
+						
+                        if (node.position.x + xDiff > maxX || node.position.x + xDiff < minX) {
+                            xD = 0
+                        }
+                        if (node.position.y - yDiff > maxY || node.position.y - yDiff < minY) {
+                            yD = 0
+                        }
+                        
+                        node.position = SCNVector3(
+							x: node.position.x + xD,
+							y: node.position.y - yD,
 							z: node.position.z
 						)
 					}
@@ -833,6 +893,13 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
 			}
 			selectedNodes = []
 			dragPoint = nil
+            let allVerts = scene.rootNode.childNodeWithName("Player", recursively: false)?.childNodes as! [SCNNode]
+            var vertexVectors = [SCNVector3]()
+            for v in allVerts {
+                vertexVectors.append(v.position)
+            }
+            shapeCenter = SCNVector3Make((vertexVectors[0].x+vertexVectors[1].x+vertexVectors[2].x)/3, (vertexVectors[0].y+vertexVectors[1].y+vertexVectors[2].y)/3, 0)
+            println(shapeCenter)
 		}
 	}
     
@@ -842,25 +909,26 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         var newYDiff = yDiff
         
         var angle = calcAngle(center, p: SCNVector3Make(x, y, 0))
+        var deg = angle*180/Float(M_PI)
         var newAngle = calcAngle(center, p: SCNVector3Make(x + xDiff, y - yDiff, 0))
         
         if (angle > d2r(90) - confiningAngle && angle < d2r(90) + confiningAngle) {
             
-            if (newAngle <= d2r(90) - confiningAngle || newAngle >= d2r(90) + confiningAngle || (y - yDiff) <= center.y) {
+            if (newAngle <= d2r(90) - confiningAngle || newAngle >= d2r(90) + confiningAngle) {// || (y - yDiff) <= center.y) {
                 newXDiff = 0
                 newYDiff = 0
             }
             
-        } else if (angle >= d2r(90) + confiningAngle && angle < d2r(90) + 3*confiningAngle || (x + xDiff) >= center.x) {
+        } else if (angle >= d2r(90) + confiningAngle && angle < d2r(90) + 3*confiningAngle) {
             
-            if (newAngle <= d2r(90) + confiningAngle || newAngle >= d2r(90) + 3*confiningAngle) {
+            if (newAngle <= d2r(90) + confiningAngle || newAngle >= d2r(90) + 3*confiningAngle) {// || (x + xDiff) >= center.x) {
                 newXDiff = 0
                 newYDiff = 0
             }
             
         } else {
             
-            if (!(newAngle >= d2r(90) + 3*confiningAngle || newAngle <= d2r(90) - confiningAngle || (x + xDiff) <= center.x)) {
+            if (!(newAngle >= d2r(90) + 3*confiningAngle || newAngle <= d2r(90) - confiningAngle)) {// || (x + xDiff) <= center.x)) {
                 newXDiff = 0
                 newYDiff = 0
             }
@@ -884,8 +952,11 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
     }
     
     func calcAngle(c: SCNVector3, p: SCNVector3) -> Float {
-        
-        return (atan((p.x-c.x)/(p.y-c.y)) + d2r(360))%d2r(360)
+        var temp1 = p.y-c.y
+        var temp2 = p.x-c.x
+        var temp3 = atan2((p.y-c.y),(p.x-c.x)) * 180/Float(M_PI)
+        var temp4 = (atan2((p.y-c.y),(p.x-c.x)) + d2r(360))%d2r(360) * 180/Float(M_PI)
+        return (atan2((p.y-c.y),(p.x-c.x)) + d2r(360))%d2r(360)
         
     }
     
