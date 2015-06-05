@@ -133,53 +133,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
                 score += 1
             }
         }
-        
-        tempCounter++
-        
-        var vertexVectors = [SCNVector3]()
-        var vertexNodes = player.childNodes as! [SCNNode]
-        
-        for ii in 0...(numVertices-1) {
-            vertexVectors.append(vertexNodes[ii].position)
-        }
-        
-        var linePoints = [SCNVector3]()
-        linePoints.append(SCNVector3Make(shapeCenter.x+100*cos(d2r(30)), shapeCenter.y+100*sin(d2r(30)), 0.01))
-        linePoints.append(SCNVector3Make(shapeCenter.x-100*cos(d2r(30)), shapeCenter.y+100*sin(d2r(30)), 0.01))
-        linePoints.append(SCNVector3Make(shapeCenter.x, shapeCenter.y-100, 0.01))
 
-        var indices = [
-            0,2,1,
-            1,2,3
-        ]
-        
-        linesNode = [SCNNode]()
-        var tempNode = SCNNode()
-        
-        for p in linePoints {
-            var positions = [
-                shapeCenter,
-                p,
-                SCNVector3Make(shapeCenter.x+0.1, shapeCenter.y+0.1, 0),
-                SCNVector3Make(p.x+0.1, p.y+0.1, 0)
-            ]
-            
-            var geo = SCNGeometrySource(vertices: positions, count: 4)
-            let indexData = NSData(bytes:&indices, length:sizeof(CInt) * indices.count)
-            let element = SCNGeometryElement(data:indexData, primitiveType:SCNGeometryPrimitiveType.Triangles, primitiveCount:2, bytesPerIndex:sizeof(CInt));
-            let line = SCNGeometry(sources:[geo], elements:[element]);
-            line.firstMaterial!.doubleSided = true
-            line.firstMaterial!.diffuse.contents = UIColor.blackColor()
-            let node = SCNNode(geometry: line)
-            
-            tempNode.addChildNode(node)
-        }
-        
-        scene.rootNode.replaceChildNode(LN, with: tempNode)
-        LN = tempNode
-        
-        
-        
         // Increment the cycle count
         cycleCount++
             
@@ -232,37 +186,6 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         shapeCenter = SCNVector3Make((vertexVectors[0].x+vertexVectors[1].x+vertexVectors[2].x)/3, (vertexVectors[0].y+vertexVectors[1].y+vertexVectors[2].y)/3, 0)
         
 		return generateShapeFromNodes(nodes, positions)
-    }
-    
-    func addPlayerSquare(scene: SCNScene) {
-        let positions = [
-            SCNVector3Make(-1,-1, 0),
-            SCNVector3Make( 1,-1, 0),
-            SCNVector3Make( 1, 1, 0),
-            SCNVector3Make(-1, 1, 0)
-        ]
-        let normals = [
-            SCNVector3Make( 0, -1, 0),
-            SCNVector3Make( 0, 1, 0),
-            SCNVector3Make(-1, 0, 0),
-            SCNVector3Make( 1, 0, 0)
-        ]
-        var indices:[CInt] = [
-            0, 1, 2,
-            0, 2, 3
-        ]
-        let indexData = NSData(bytes:&indices, length:sizeof(CInt) * indices.count)
-        var corners:[CInt] = [0, 1, 2, 3]
-        let cornerData = NSData(bytes:&corners, length:sizeof(CInt) * corners.count)
-        let element = SCNGeometryElement(data: indexData, primitiveType: SCNGeometryPrimitiveType.Triangles, primitiveCount: 2, bytesPerIndex: sizeof(CInt))
-        let vertexSource = SCNGeometrySource(vertices: positions, count: 4)
-        let normalSource = SCNGeometrySource(normals: normals,
-            count: 4)
-        let square = SCNGeometry(sources: [vertexSource], elements: [element])
-        square.firstMaterial!.diffuse.contents = UIColor.purpleColor()
-        let squareNode = SCNNode(geometry: square)
-        
-        scene.rootNode.addChildNode(squareNode)
     }
 
     func generateShape(numVertices: Int) -> Double {
@@ -355,8 +278,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
             
             bxs.append(tempX)
             bys.append(tempY)
-            
-            
+
             
             currentAngle += 2*confiningAngle
             currentAngle = currentAngle%d2r(360)

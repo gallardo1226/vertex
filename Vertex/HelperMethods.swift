@@ -15,19 +15,49 @@ func generateShapeFromNodes(vertices: [SCNNode], positions: [SCNVector3]) -> SCN
 	for i in 1 ... vertices.count - 2 {
 		indices += [CInt(0), CInt(i), CInt(i + 1)]
 	}
-	var corners = [CInt]()
-	for i in 0 ... vertices.count {
-		corners.append(CInt(i))
-	}
+
 	let indexData = NSData(bytes:&indices, length:sizeof(CInt) * indices.count)
-	let cornerData = NSData(bytes:&corners, length:sizeof(CInt) * corners.count)
 	let element = SCNGeometryElement(data: indexData, primitiveType: SCNGeometryPrimitiveType.Triangles, primitiveCount: indices.count / 3, bytesPerIndex: sizeof(CInt))
-	let vertexSource = SCNGeometrySource(vertices: positions, count: corners.count)
+	let vertexSource = SCNGeometrySource(vertices: positions, count: vertices.count)
 	let shape = SCNGeometry(sources: [vertexSource], elements: [element])
 	shape.firstMaterial!.diffuse.contents = UIColor.greenColor()
 	shape.firstMaterial!.doubleSided = true
 	let node = SCNNode(geometry: shape)
 	node.name = "Shape"
+
+	let center = SCNVector3Make(
+		(positions[0].x+positions[1].x+positions[2].x)/3,
+		(positions[0].y+positions[1].y+positions[2].y)/3,
+		0.1
+	)
+	for point in positions {
+		node.addChildNode(generateNormal(center, point))
+	}
+	println(node)
+	return node
+}
+
+func generateNormal(center: SCNVector3, point: SCNVector3) -> SCNNode {
+	let p = SCNVector3Make(
+		center.x + (center.x - point.x),
+		center.y + (center.y - point.y),
+		0.1
+	)
+
+	var indices: [CInt] = [ 0,1 ]
+
+	var positions = [ center, p ]
+
+	var geo = SCNGeometrySource(vertices: positions, count: 2)
+	let indexData = NSData(bytes:&indices, length:sizeof(CInt) * indices.count)
+	let element = SCNGeometryElement(data:indexData, primitiveType:SCNGeometryPrimitiveType.Line, primitiveCount: 1, bytesPerIndex:sizeof(CInt))
+	let line = SCNGeometry(sources:[geo], elements:[element])
+	line.firstMaterial!.doubleSided = true
+	line.firstMaterial!.diffuse.contents = UIColor.blackColor()
+	
+	let node = SCNNode(geometry: line)
+	node.name = "Normal"
+
 	return node
 }
 
