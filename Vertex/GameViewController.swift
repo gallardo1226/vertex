@@ -72,7 +72,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
     
     var minX: Float = -5
     var maxX: Float = 5
-    var minY: Float = -7
+    var minY: Float = -7.5
     var maxY: Float = 7
     
     override func viewDidLoad() {
@@ -131,6 +131,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
             if (isHoleCovered()) {
                 shapeUncovered = false
                 score += 1
+				totalScore += level
             }
         }
 
@@ -156,7 +157,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
         if (score >= winScore) {
             fillLevel = 0.0
             score = 0
-            totalScore += score*level
+
             level++
             fillParam *= 0.9
         }
@@ -835,10 +836,9 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate {
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject!) {
         if (segue.identifier == "GameOver") {
-            let vc:EndViewController = segue.destinationViewController as! EndViewController
-            vc.scoreLabel.text = String(totalScore)
-            vc.levelLabel.text = String(level)
+            let vc = segue.destinationViewController as! EndViewController
+            vc.score = totalScore
+            vc.level = level
         }
-    }
-
+	}
 }

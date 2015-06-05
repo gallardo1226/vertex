@@ -11,22 +11,25 @@ import Foundation
 
 
 class EndViewController: UIViewController {
-    
+
+	var score = 0
+	var level = 0
+
+	@IBOutlet weak var scoreLabel: UILabel!
+
+	@IBOutlet weak var levelLabel: UILabel!
+
+	@IBOutlet weak var restartButton: UIButton!
+
     override func viewDidLoad() {
         super.viewDidLoad()
+		scoreLabel.text = "Score: \(score)"
+		levelLabel.text = "Level: \(level)"
     }
     
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
     }
-    
-    
-    @IBOutlet weak var scoreLabel: UILabel!
-    
-    @IBOutlet weak var levelLabel: UILabel!
-    
-    
-    @IBOutlet weak var restartButton: UIButton!
     
 
     
