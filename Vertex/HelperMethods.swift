@@ -30,33 +30,32 @@ func generateShapeFromNodes(vertices: [SCNNode], positions: [SCNVector3]) -> SCN
 		(positions[0].y+positions[1].y+positions[2].y)/3,
 		0.1
 	)
-	for point in positions {
-		node.addChildNode(generateNormal(center, point))
-	}
-	println(node)
+	node.addChildNode(generateNormals(center))
 	return node
 }
 
-func generateNormal(center: SCNVector3, point: SCNVector3) -> SCNNode {
-	let p = SCNVector3Make(
-		center.x + (center.x - point.x),
-		center.y + (center.y - point.y),
-		0.1
-	)
+func generateNormals(center: SCNVector3) -> SCNNode {
+	let node = SCNNode()
+	var linePoints = [SCNVector3]()
+	linePoints.append(SCNVector3Make(center.x+100*cos(d2r(30)), center.y+100*sin(d2r(30)), 0.1))
+	linePoints.append(SCNVector3Make(center.x-100*cos(d2r(30)), center.y+100*sin(d2r(30)), 0.1))
+	linePoints.append(SCNVector3Make(center.x, center.y-100, 0.1))
 
 	var indices: [CInt] = [ 0,1 ]
-
-	var positions = [ center, p ]
-
-	var geo = SCNGeometrySource(vertices: positions, count: 2)
 	let indexData = NSData(bytes:&indices, length:sizeof(CInt) * indices.count)
-	let element = SCNGeometryElement(data:indexData, primitiveType:SCNGeometryPrimitiveType.Line, primitiveCount: 1, bytesPerIndex:sizeof(CInt))
-	let line = SCNGeometry(sources:[geo], elements:[element])
-	line.firstMaterial!.doubleSided = true
-	line.firstMaterial!.diffuse.contents = UIColor.blackColor()
+
+	for line in linePoints {
+
+		var geo = SCNGeometrySource(vertices: [ center, line ], count: 2)
+		let element = SCNGeometryElement(data:indexData, primitiveType:SCNGeometryPrimitiveType.Line, primitiveCount: 1, bytesPerIndex:sizeof(CInt))
+		let line = SCNGeometry(sources:[geo], elements:[element])
+		line.firstMaterial!.doubleSided = true
+		line.firstMaterial!.diffuse.contents = UIColor.blackColor()
 	
-	let node = SCNNode(geometry: line)
-	node.name = "Normal"
+		let normalNode = SCNNode(geometry: line)
+		normalNode.name = "Normal"
+		node.addChildNode(normalNode)
+	}
 
 	return node
 }

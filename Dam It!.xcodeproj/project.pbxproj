@@ -416,7 +416,7 @@
 				INFOPLIST_FILE = VertexTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_NAME = "Dam It!Tests";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Vertex.app/Vertex";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Dam It!.app/Dam It!";
 			};
 			name = Debug;
 		};
@@ -431,7 +431,7 @@
 				INFOPLIST_FILE = VertexTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_NAME = "Dam It!Tests";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Vertex.app/Vertex";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Dam It!.app/Dam It!";
 			};
 			name = Release;
 		};
